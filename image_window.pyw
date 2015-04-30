@@ -7,6 +7,7 @@ import win32api
 import win32con
 import win32gui
 
+import tkinter as tk
 import threading
 import time
 
@@ -34,6 +35,7 @@ class image_window:
           win32con.WM_DESTROY: self.OnDestroy,
           win32con.WM_LBUTTONDOWN: self.OnLButtonDown,
           win32con.WM_PAINT: self.OnPaint,
+          win32con.WM_RBUTTONUP: self.OnRButtonUp,
         }
     def CreateWindow(self):
         className = self.RegisterClass()
@@ -88,9 +90,21 @@ class image_window:
         
     def OnLButtonDown(self, hwnd, message, wparam, lparam):
         win32api.SendMessage(hwnd, win32con.WM_NCLBUTTONDOWN, 2, lparam)
-        #self.SwitchNextImage()
         return True
-    
+    def OnRButtonUp(self, hwnd, message, wparam, lparam):
+        self.root = tk.Tk()
+        btnSpeak = tk.Button(self.root, text='speak', relief='flat', command=self.showSpeakWindow)
+        btnSpeak.pack()
+        self.root.overrideredirect(True)
+        self.root.wm_attributes('-alpha',1.0,'-disabled',False,'-toolwindow',True, '-topmost', True)
+        self.root.mainloop()
+    def showSpeakWindow(self):
+        self.root.quit()
+        self.root = tk.Tk()
+        speak_window = tk.Text()
+        speak_window.pack()
+        speak_window.mainloop()
+        pass
     def OnPaint(self, hwnd, message, wparam, lparam):
         if (self.bmp == None):
              return False
@@ -111,7 +125,6 @@ class image_window:
         win32gui.PostQuitMessage(0)
         return True
 
-
 win = image_window()
 def func():
     global win
@@ -119,8 +132,6 @@ def func():
         time.sleep(0.3)
         win.SwitchNextImage()
 if __name__ == '__main__':
-    
-    
     win.CreateWindow()
     win.SetImages(['shime1.bmp','shime2.bmp', 'shime3.bmp'])
     win.SwitchNextImage()
