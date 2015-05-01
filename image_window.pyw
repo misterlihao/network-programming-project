@@ -8,6 +8,7 @@ import win32con
 import win32gui
 
 import tkinter as tk
+import tkinter.messagebox as tkmb
 import threading
 import time
 
@@ -17,6 +18,9 @@ def RGB(r, g, b):
     b = b & 0xFF
     return (b << 16) | (g << 8) | r
 
+def getXY(lparam):
+    return lparam&0xffff, (lparam>>16)&0xffff
+
 class image_window:
     '''
     modify .message_map to handle messages
@@ -24,6 +28,13 @@ class image_window:
     stuck in run() and released after closed
     SetImages() to set a list of paths
     SwitchNextImage() let you switch to next image
+    '''
+    '''
+    TODO 
+    sending message
+    allowing multiline message
+    choose anime
+    preview anime
     '''
     def __init__(self):
         win32gui.InitCommonControls()
@@ -86,29 +97,60 @@ class image_window:
             win32gui.DeleteObject(self.bmp)
         self.image_index = (self.image_index+1)%len(self.image_paths)
         self.bmp = win32gui.LoadImage(0, self.image_paths[self.image_index], win32gui.IMAGE_BITMAP, 0, 0,win32gui.LR_LOADFROMFILE)
+        
+        pybmp = win32gui.GetObject(self.bmp)
+        w = pybmp.bmWidth
+        h = pybmp.bmHeight
+        win32gui.SetWindowPos(self.hwnd, win32con.HWND_TOP, 0, 0, w, h, win32con.SWP_NOMOVE)
         win32gui.InvalidateRect(self.hwnd, None, True)
         
+    def OnNCCreate(self, hwnd, message, wparam, lparam):
+        return True
+    
     def OnLButtonDown(self, hwnd, message, wparam, lparam):
         win32api.SendMessage(hwnd, win32con.WM_NCLBUTTONDOWN, 2, lparam)
         return True
+    
     def OnRButtonUp(self, hwnd, message, wparam, lparam):
-        self.root = tk.Tk()
-        btnSpeak = tk.Button(self.root, text='speak', relief='flat', command=self.showSpeakWindow)
-        btnSpeak.pack()
-        self.root.overrideredirect(True)
-        self.root.wm_attributes('-alpha',1.0,'-disabled',False,'-toolwindow',True, '-topmost', True)
-        self.root.mainloop()
-    def showSpeakWindow(self):
-        self.root.quit()
-        self.root = tk.Tk()
-        speak_window = tk.Text()
-        speak_window.pack()
-        speak_window.mainloop()
+        menu = win32gui.CreatePopupMenu()
+        win32gui.AppendMenu(menu, win32con.MF_STRING, 1, 'speak')
+        x, y = getXY(lparam)
+        x, y = win32gui.ClientToScreen(hwnd, (x, y))
+        id = win32gui.TrackPopupMenu(menu, 0x100, x, y, 0, hwnd, None) #0x100 means return item id right after
+        if id == 1:
+            self.ShowSpeakWindow()
+        print('huh, finally released')
+        
+    def ShowSpeakWindow(self):
+        self.speak_window = tk.Tk()
+        self.speak_window.overrideredirect(True)
+        self.speak_window.wm_attributes('-alpha',1,'-disabled',False,'-toolwindow',True, '-topmost', True)
+        input_text = tk.Entry(self.speak_window)
+        input_text.pack(side='left')
+        send_btn = tk.Button(self.speak_window, text='send', command=self.SendText)
+        send_btn.pack(side='right')
+        anime_btn = tk.Button(self.speak_window, text='anime', command=self.SelectAnime)
+        anime_btn.pack(side='right')
+        w = 220
+        h = 20
+        print(win32gui.GetWindowRect(self.hwnd)[3])
+        x = win32gui.GetWindowRect(self.hwnd)[0]
+        y = win32gui.GetWindowRect(self.hwnd)[3]
+        self.speak_window.geometry('%dx%d+%d+%d' % (w,h,x,y))
+        self.speak_window.mainloop()
+    
+    def SelectAnime(self):
         pass
+        
+    def SendText(self):
+        self.speak_window.destroy()
+        '''send something here'''
+#         tkmb.showinfo('title', 'message')
+    
     def OnPaint(self, hwnd, message, wparam, lparam):
         if (self.bmp == None):
-             return False
-        print('on paint')
+            return False
+#         print('on paint')
         dc,ps = win32gui.BeginPaint(hwnd)
         
         mdc = win32gui.CreateCompatibleDC(dc)
