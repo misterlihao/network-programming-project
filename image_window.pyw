@@ -47,6 +47,7 @@ class image_window:
           win32con.WM_LBUTTONDOWN: self.OnLButtonDown,
           win32con.WM_PAINT: self.OnPaint,
           win32con.WM_RBUTTONUP: self.OnRButtonUp,
+          win32con.WM_MOVE: self.OnMove,
         }
     def CreateWindow(self):
         className = self.RegisterClass()
@@ -120,27 +121,43 @@ class image_window:
         if id == 1:
             self.ShowSpeakWindow()
         print('huh, finally released')
-        
+    
+    def OnMove(self, hwnd, message, wparam, lparam):
+        if hasattr(self, 'speak_window') and self.speak_window != None\
+                and self.speak_window.state() == tk.NORMAL:
+            self.speak_window.geometry('+%d+%d' % self.GetSpeakingWindowPos())
+            
+    def GetSpeakingWindowPos(self):
+        x = win32gui.GetWindowRect(self.hwnd)[0]
+        y = win32gui.GetWindowRect(self.hwnd)[3]
+        return x,y
+    
     def ShowSpeakWindow(self):
         self.speak_window = tk.Tk()
         self.speak_window.overrideredirect(True)
         self.speak_window.wm_attributes('-alpha',1,'-disabled',False,'-toolwindow',True, '-topmost', True)
-        input_text = tk.Entry(self.speak_window)
+        frame = tk.Frame(self.speak_window)
+        input_text = tk.Entry(frame)
         input_text.pack(side='left')
-        send_btn = tk.Button(self.speak_window, text='send', command=self.SendText)
+        send_btn = tk.Button(frame, text='send', command=self.SendText)
         send_btn.pack(side='right')
-        anime_btn = tk.Button(self.speak_window, text='anime', command=self.SelectAnime)
+        anime_btn = tk.Button(frame, text='anime', command=self.SelectAnime)
         anime_btn.pack(side='right')
-        w = 220
-        h = 20
-        print(win32gui.GetWindowRect(self.hwnd)[3])
-        x = win32gui.GetWindowRect(self.hwnd)[0]
-        y = win32gui.GetWindowRect(self.hwnd)[3]
-        self.speak_window.geometry('%dx%d+%d+%d' % (w,h,x,y))
+        frame.pack()
+        
+        self.speak_window.geometry('+%d+%d' % self.GetSpeakingWindowPos())
         self.speak_window.mainloop()
     
     def SelectAnime(self):
-        pass
+        if hasattr(self, 'anime_lb') and self.anime_lb != None :
+            self.anime_lb.destroy()
+            self.anime_lb = None
+        else:
+            anime_list = ['anime 1','anime 2']
+            self.anime_lb = tk.Listbox(self.speak_window, height = len(anime_list))
+            for i in range(len(anime_list)):
+                self.anime_lb.insert(i+1, anime_list[i])
+            self.anime_lb.pack(expand=True, fill='both')
         
     def SendText(self):
         self.speak_window.destroy()
