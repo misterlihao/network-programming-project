@@ -1,5 +1,7 @@
 # example1.py
 import sys
+from win32con import MF_CHECKED
+from turtledemo.chaos import line
 sys.path.append('.\win32\lib')
 sys.path.append('.\win32')
 import struct
@@ -11,6 +13,9 @@ import tkinter as tk
 import tkinter.messagebox as tkmb
 import threading
 import time
+
+config_file="config"
+registered = False
 
 def RGB(r, g, b):
     r = r & 0xFF
@@ -49,11 +54,21 @@ class image_window:
           win32con.WM_RBUTTONUP: self.OnRButtonUp,
           win32con.WM_MOVE: self.OnMove,
         }
+        self.readCheck=False
+        with open(config_file) as file:
+            for line in file:
+                cap = line.split(":")
+                print(cap)
+                if cap[0] == 'readCheck':
+                    self.readCheck=bool(cap[1]=='True')
+                    print(self.readCheck)
+                    break
     def CreateWindow(self):
-        className = self.RegisterClass()
-        self.BuildWindow(className)
-    def run(self):
-        win32gui.PumpMessages()
+        global registered
+        if registered == False:
+            registered = True
+            self.RegisterClass()
+        self.BuildWindow("image_window")
     def RegisterClass(self):
         className = "image_window"
         wc = win32gui.WNDCLASS()
@@ -115,18 +130,30 @@ class image_window:
     def OnRButtonUp(self, hwnd, message, wparam, lparam):
         menu = win32gui.CreatePopupMenu()
         win32gui.AppendMenu(menu, win32con.MF_STRING, 1, 'speak')
+        win32gui.AppendMenu(menu, win32con.MF_STRING, 2, 'read check')
+        if self.readCheck == True: #check new menu's mark
+            win32gui.CheckMenuItem(menu, 2, win32con.MF_CHECKED)
         x, y = getXY(lparam)
         x, y = win32gui.ClientToScreen(hwnd, (x, y))
         id = win32gui.TrackPopupMenu(menu, 0x100, x, y, 0, hwnd, None) #0x100 means return item id right after
         if id == 1:
-            self.ShowSpeakWindow()
+            if hasattr(self, 'speak_window') and self.speak_window != None\
+                and self.speak_window.state() == tk.NORMAL:
+                self.speak_window.destroy()
+                self.speak_window.quit()
+                self.speak_window = None
+            else:
+                self.ShowSpeakWindow()
+        if id == 2:
+            self.readCheck=not self.readCheck
         print('huh, finally released')
+        win32gui.DestroyMenu(menu)
     
     def OnMove(self, hwnd, message, wparam, lparam):
         if hasattr(self, 'speak_window') and self.speak_window != None\
                 and self.speak_window.state() == tk.NORMAL:
             self.speak_window.geometry('+%d+%d' % self.GetSpeakingWindowPos())
-            
+        
     def GetSpeakingWindowPos(self):
         x = win32gui.GetWindowRect(self.hwnd)[0]
         y = win32gui.GetWindowRect(self.hwnd)[3]
@@ -181,7 +208,11 @@ class image_window:
         win32gui.EndPaint(hwnd, ps)
         return True
     def OnDestroy(self, hwnd, message, wparam, lparam):
-        win32gui.PostQuitMessage(0)
+        with open(config_file, 'w') as file:
+            file.write('readCheck:'+str(self.readCheck))
+        after_window_closed()
+        if hasattr(self, 'speak_window') and self.speak_window != None:
+            self.speak_window.quit()
         return True
 
 win = image_window()
@@ -190,10 +221,13 @@ def func():
     while True:
         time.sleep(0.3)
         win.SwitchNextImage()
+def after_window_closed():
+    win32gui.PostQuitMessage(0)
+    
 if __name__ == '__main__':
     win.CreateWindow()
     win.SetImages(['shime1.bmp','shime2.bmp', 'shime3.bmp'])
     win.SwitchNextImage()
     threading.Thread(target = func).start()
-    win.run()#stuck here
+    win32gui.PumpMessages()
     print('end')
