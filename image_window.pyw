@@ -10,6 +10,7 @@ import threading
 import time
 
 config_file="config"
+history_file="history"
 registered = False
 
 def RGB(r, g, b):
@@ -48,7 +49,14 @@ class image_window:
           win32con.WM_RBUTTONUP: self.OnRButtonUp,
           win32con.WM_MOVE: self.OnMove,
         }
-        self.readCheck=False
+        try:
+            self.ReadConfig()
+        except err: 
+            self.readCheck=False
+            print('no config file')  
+        self.this_messages=[]
+        
+    def ReadConfig(self):
         with open(config_file) as file:
             for line in file:
                 cap = line.split(":")
@@ -123,6 +131,7 @@ class image_window:
         menu = win32gui.CreatePopupMenu()
         win32gui.AppendMenu(menu, win32con.MF_STRING, 1, 'speak')
         win32gui.AppendMenu(menu, win32con.MF_STRING, 2, 'read check')
+        win32gui.AppendMenu(menu, win32con.MF_STRING, 3, 'historical messages')
         if self.readCheck == True: #check new menu's mark
             win32gui.CheckMenuItem(menu, 2, win32con.MF_CHECKED)
         x, y = getXY(lparam)
@@ -138,6 +147,8 @@ class image_window:
                 self.ShowSpeakWindow()
         if id == 2:
             self.readCheck=not self.readCheck
+        if id == 3:
+            self.ShowHistoryWindow()
         print('huh, finally released')
         win32gui.DestroyMenu(menu)
     
@@ -156,8 +167,8 @@ class image_window:
         self.speak_window.overrideredirect(True)
         self.speak_window.wm_attributes('-alpha',1,'-disabled',False,'-toolwindow',True, '-topmost', True)
         frame = tk.Frame(self.speak_window)
-        input_text = tk.Entry(frame)
-        input_text.pack(side='left')
+        self.input_text = tk.Entry(frame, name='input_text')
+        self.input_text.pack(side='left')
         send_btn = tk.Button(frame, text='send', command=self.SendText)
         send_btn.pack(side='right')
         anime_btn = tk.Button(frame, text='anime', command=self.SelectAnime)
@@ -166,6 +177,12 @@ class image_window:
         
         self.speak_window.geometry('+%d+%d' % self.GetSpeakingWindowPos())
         self.speak_window.mainloop()
+    
+    def ShowHistoryWindow(self):
+        with open(history_file) as file:
+            for line in file:
+                print(line)
+            
     
     def SelectAnime(self):
         if hasattr(self, 'anime_lb') and self.anime_lb != None :
@@ -179,7 +196,9 @@ class image_window:
             self.anime_lb.pack(expand=True, fill='both')
         
     def SendText(self):
+        self.this_messages.append(self.input_text.get())
         self.speak_window.destroy()
+        self.input_text = None
         '''send something here'''
 #         tkmb.showinfo('title', 'message')
     
@@ -202,6 +221,9 @@ class image_window:
     def OnDestroy(self, hwnd, message, wparam, lparam):
         with open(config_file, 'w') as file:
             file.write('readCheck:'+str(self.readCheck))
+        with open(history_file, 'a') as file:
+            for line in self.this_messages:
+                file.write(line+'\n')
         after_window_closed()
         if hasattr(self, 'speak_window') and self.speak_window != None:
             self.speak_window.quit()
