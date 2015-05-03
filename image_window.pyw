@@ -5,9 +5,10 @@ import win32con
 import win32gui
 
 import tkinter as tk
-import tkinter.messagebox as tkmb
 import threading
 import time
+
+import Image
 
 config_file="config"
 registered = False
@@ -38,9 +39,8 @@ class image_window:
     def __init__(self):
         win32gui.InitCommonControls()
         self.hinst = win32api.GetModuleHandle(None)
-        self.bmp = None
-        self.image_index = -1
-        self.image_paths = ['shime1.bmp', 'shime2.bmp']
+        self.image_index = 0
+        self.Image_list = []
         self.message_map = {
           win32con.WM_DESTROY: self.OnDestroy,
           win32con.WM_LBUTTONDOWN: self.OnLButtonDown,
@@ -96,22 +96,24 @@ class image_window:
                              self.hinst,
                              None)
         win32gui.SetLayeredWindowAttributes(self.hwnd, RGB(255,255,255),0,win32con.LWA_COLORKEY)
-    def SetImages(self, paths):
-        self.image_paths = paths
-        self.image_index = -1
+    def SetImages(self, Image_list):
+        self.Image_list = Image_list
+        self.image_index = 0
     
     def SwitchNextImage(self):
-        if self.bmp!= None:
-            win32gui.DeleteObject(self.bmp)
-        self.image_index = (self.image_index+1)%len(self.image_paths)
-        self.bmp = win32gui.LoadImage(0, self.image_paths[self.image_index], win32gui.IMAGE_BITMAP, 0, 0,win32gui.LR_LOADFROMFILE)
+        '''maybe call Resize here'''
+        self.image_index = (self.image_index+1)%len(self.Image_list)
         
-        pybmp = win32gui.GetObject(self.bmp)
-        w = pybmp.bmWidth
-        h = pybmp.bmHeight
-        win32gui.SetWindowPos(self.hwnd, win32con.HWND_TOP, 0, 0, w, h, win32con.SWP_NOMOVE)
+        #redrawing
         win32gui.InvalidateRect(self.hwnd, None, True)
-        
+    
+    def GoOnTop(self):
+        win32gui.SetWindowPos(self.hwnd, win32con.HWND_TOP, 0, 0, 0, 0, win32con.SWP_NOMOVE|win32con.SWP_NOSIZE)
+    def StayTop(self):
+        win32gui.SetWindowPos(self.hwnd, win32con.HWND_TOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE|win32con.SWP_NOSIZE)
+    def Resize(self, w, h):
+        win32gui.SetWindowPos(self.hwnd, 0, 0, 0, w, h, win32con.SWP_NOMOVE|win32con.SWP_NOOWNERZORDER)
+    
     def OnNCCreate(self, hwnd, message, wparam, lparam):
         return True
     
@@ -127,8 +129,8 @@ class image_window:
             win32gui.CheckMenuItem(menu, 2, win32con.MF_CHECKED)
         x, y = getXY(lparam)
         x, y = win32gui.ClientToScreen(hwnd, (x, y))
-        id = win32gui.TrackPopupMenu(menu, 0x100, x, y, 0, hwnd, None) #0x100 means return item id right after
-        if id == 1:
+        item_id = win32gui.TrackPopupMenu(menu, 0x100, x, y, 0, hwnd, None) #0x100 means return item id right after
+        if item_id == 1:
             if hasattr(self, 'speak_window') and self.speak_window != None\
                 and self.speak_window.state() == tk.NORMAL:
                 self.speak_window.destroy()
@@ -136,7 +138,7 @@ class image_window:
                 self.speak_window = None
             else:
                 self.ShowSpeakWindow()
-        if id == 2:
+        if item_id == 2:
             self.readCheck=not self.readCheck
         print('huh, finally released')
         win32gui.DestroyMenu(menu)
@@ -157,7 +159,7 @@ class image_window:
         self.speak_window.wm_attributes('-alpha',1,'-disabled',False,'-toolwindow',True, '-topmost', True)
         frame = tk.Frame(self.speak_window)
         input_text = tk.Entry(frame)
-        input_text.pack(side='left')
+        input_text.pack(side='left',expand=True, fill='both')
         send_btn = tk.Button(frame, text='send', command=self.SendText)
         send_btn.pack(side='right')
         anime_btn = tk.Button(frame, text='anime', command=self.SelectAnime)
@@ -180,23 +182,14 @@ class image_window:
         
     def SendText(self):
         self.speak_window.destroy()
+        self.speak_window.quit()
+        self.speak_window = None
         '''send something here'''
 #         tkmb.showinfo('title', 'message')
     
     def OnPaint(self, hwnd, message, wparam, lparam):
-        if (self.bmp == None):
-            return False
-#         print('on paint')
         dc,ps = win32gui.BeginPaint(hwnd)
-        
-        mdc = win32gui.CreateCompatibleDC(dc)
-        win32gui.SelectObject(mdc,self.bmp)
-        pybmp = win32gui.GetObject(self.bmp)
-        w = pybmp.bmWidth
-        h = pybmp.bmHeight
-        win32gui.TransparentBlt(dc, 0, 0, w, h, mdc, 0, 0, w, h, RGB(255,255,255))
-        win32gui.DeleteDC(mdc)
-        
+        self.Image_list[self.image_index].draw_on_dc(dc, RGB(255,255,255))
         win32gui.EndPaint(hwnd, ps)
         return True
     def OnDestroy(self, hwnd, message, wparam, lparam):
@@ -211,14 +204,28 @@ win = image_window()
 def func():
     global win
     while True:
-        time.sleep(0.3)
+        time.sleep(0.15)
         win.SwitchNextImage()
 def after_window_closed():
     win32gui.PostQuitMessage(0)
     
 if __name__ == '__main__':
     win.CreateWindow()
-    win.SetImages(['shime1.bmp','shime2.bmp', 'shime3.bmp'])
+    win.Resize(256, 128)
+    hbmp1 = win32gui.LoadImage(0, 'shime1.bmp', win32gui.IMAGE_BITMAP, 0, 0,win32gui.LR_LOADFROMFILE)
+    hbmp2 = win32gui.LoadImage(0, 'shime2.bmp', win32gui.IMAGE_BITMAP, 0, 0,win32gui.LR_LOADFROMFILE)
+    hbmp3 = win32gui.LoadImage(0, 'shime3.bmp', win32gui.IMAGE_BITMAP, 0, 0,win32gui.LR_LOADFROMFILE)
+    img1 = Image.Image()
+    img1.append_component(hbmp1, 0, 0, 128, 128)
+    img1.append_component(hbmp2, 128, 0, 128, 128)
+    img2 = Image.Image()
+    img2.append_component(hbmp2, 0, 0, 128, 128)
+    img2.append_component(hbmp3, 128, 0, 128, 128)
+    img3 = Image.Image()
+    img3.append_component(hbmp3, 0, 0, 128, 128)
+    img3.append_component(hbmp1, 128, 0, 128, 128)
+    
+    win.SetImages([img1, img2, img3])
     win.SwitchNextImage()
     threading.Thread(target = func).start()
     win32gui.PumpMessages()
