@@ -1,9 +1,4 @@
 # example1.py
-import sys
-from win32con import MF_CHECKED
-from turtledemo.chaos import line
-sys.path.append('.\win32\lib')
-sys.path.append('.\win32')
 import struct
 import win32api
 import win32con
@@ -38,7 +33,6 @@ class image_window:
     TODO 
     sending message
     allowing multiline message
-    choose anime
     preview anime
     '''
     def __init__(self):
@@ -79,8 +73,6 @@ class image_window:
         wc.hbrBackground = win32con.COLOR_WINDOW + 1
         wc.hIcon = win32gui.LoadIcon(0, win32con.IDI_APPLICATION)
         wc.lpszClassName = className
-        ''' C code: wc.cbWndExtra = DLGWINDOWEXTRA + sizeof(HBRUSH) + 
-(sizeof(COLORREF));'''
         wc.cbWndExtra = win32con.DLGWINDOWEXTRA + struct.calcsize("Pi")
         # wc.hIconSm = 0
         classAtom = win32gui.RegisterClass(wc)
