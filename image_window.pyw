@@ -174,6 +174,7 @@ class image_window:
         frame = tk.Frame(self.speak_window)
         self.input_text = tk.Entry(frame)
         self.input_text.pack(side='left',expand=True, fill='both')
+        self.input_text.bind('<Return>', func=self.InputTextHitReturn)
         send_btn = tk.Button(frame, text='send', command=self.SendText)
         send_btn.pack(side='right')
         anime_btn = tk.Button(frame, text='anime', command=self.SelectAnime)
@@ -182,6 +183,8 @@ class image_window:
         
         self.speak_window.geometry('+%d+%d' % self.GetSpeakWindowPos())
         self.speak_window.mainloop()
+    def InputTextHitReturn(self, event):
+        self.SendText()
         
     def GetHistoryWindowPos(self):
         return win32gui.GetCursorPos()
@@ -235,13 +238,11 @@ class image_window:
             self.anime_lb.pack(expand=True, fill='both')
         
     def SendText(self):
-        self.this_messages.append(self.input_text.get())
-        turnOffTk(self.speak_window)
-        self.speak_window = None
-        self.input_text = None
         '''send something here'''
-#         tkmb.showinfo('title', 'message')
-    
+        self.this_messages.append(self.input_text.get())
+        
+        self.input_text.delete(0, tk.END)
+        
     def OnPaint(self, hwnd, message, wparam, lparam):
         dc,ps = win32gui.BeginPaint(hwnd)
         self.Image_list[self.image_index].draw_on_dc(dc, RGB(255,255,255))
