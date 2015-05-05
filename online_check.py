@@ -10,7 +10,7 @@ def ReceivingOnlineChecks(ready_socket):
     pass
     
 def CheckSomeoneOnline(ip):
-    s = CreatePort(check_online_type, check_online_ip, check_online_port, check_online_timeout)
+    s = sh.CreatePort(check_online_type, check_online_ip, check_online_port, check_online_timeout)
     try:
         s.connect(ip, check_online_port)
     except:
