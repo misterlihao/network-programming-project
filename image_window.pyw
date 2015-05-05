@@ -24,6 +24,9 @@ def RGB(r, g, b):
 def getXY(lparam):
     return lparam&0xffff, (lparam>>16)&0xffff
 
+def turnOffTk(tk_object):
+    tk_object.destroy()
+    tk_object.quit()
 class image_window:
     '''
     modify .message_map to handle messages
@@ -52,12 +55,13 @@ class image_window:
         }
         try:
             self.ReadConfig()
-        except err: 
+        except Exception: 
             self.readCheck=False
             print('no config file')  
 
         self.this_messages=[]
-        
+        self.chat_name = 'Friend A'
+        self.history_window_width = 30 # in character
     def ReadConfig(self):
         with open(config_file) as file:
             for line in file:
@@ -65,7 +69,6 @@ class image_window:
                 print(cap)
                 if cap[0] == 'readCheck':
                     self.readCheck=bool(cap[1]=='True')
-                    print(self.readCheck)
                     break
     def CreateWindow(self):
         global registered
@@ -85,7 +88,7 @@ class image_window:
         wc.lpszClassName = className
         wc.cbWndExtra = win32con.DLGWINDOWEXTRA + struct.calcsize("Pi")
         # wc.hIconSm = 0
-        classAtom = win32gui.RegisterClass(wc)
+        win32gui.RegisterClass(wc)
         return className
 
     def BuildWindow(self, className):
@@ -142,26 +145,26 @@ class image_window:
         x, y = win32gui.ClientToScreen(hwnd, (x, y))
         item_id = win32gui.TrackPopupMenu(menu, 0x100, x, y, 0, hwnd, None) #0x100 means return item id right after
         if item_id == 1:
-            if hasattr(self, 'speak_window') and self.speak_window != None\
-                and self.speak_window.state() == tk.NORMAL:
-                self.speak_window.destroy()
-                self.speak_window.quit()
+            try:
+                turnOffTk(self.speak_window)
                 self.speak_window = None
-            else:
+            except Exception:
                 self.ShowSpeakWindow()
         if item_id == 2:
             self.readCheck=not self.readCheck
         if item_id == 3:
-            self.ShowHistoryWindow()
-        print('huh, finally released')
+            try:
+                turnOffTk(self.history_window)
+                self.history_window = None
+            except Exception:
+                self.ShowHistoryWindow()
         win32gui.DestroyMenu(menu)
     
     def OnMove(self, hwnd, message, wparam, lparam):
-        if hasattr(self, 'speak_window') and self.speak_window != None\
-                and self.speak_window.state() == tk.NORMAL:
-            self.speak_window.geometry('+%d+%d' % self.GetSpeakingWindowPos())
+        try:self.speak_window.geometry('+%d+%d' % self.GetSpeakWindowPos())
+        except Exception:pass
         
-    def GetSpeakingWindowPos(self):
+    def GetSpeakWindowPos(self):
         x = win32gui.GetWindowRect(self.hwnd)[0]
         y = win32gui.GetWindowRect(self.hwnd)[3]
         return x,y
@@ -173,21 +176,57 @@ class image_window:
         frame = tk.Frame(self.speak_window)
         self.input_text = tk.Entry(frame)
         self.input_text.pack(side='left',expand=True, fill='both')
+        self.input_text.bind('<Return>', func=self.InputTextHitReturn)
         send_btn = tk.Button(frame, text='send', command=self.SendText)
         send_btn.pack(side='right')
         anime_btn = tk.Button(frame, text='anime', command=self.SelectAnime)
         anime_btn.pack(side='right')
         frame.pack()
         
-        self.speak_window.geometry('+%d+%d' % self.GetSpeakingWindowPos())
+        self.speak_window.geometry('+%d+%d' % self.GetSpeakWindowPos())
         self.speak_window.mainloop()
+    def InputTextHitReturn(self, event):
+        self.SendText()
+        
+    def GetHistoryWindowPos(self):
+        return win32gui.GetCursorPos()
+    
+    def GetHistoryString(self):
+        s = ''
+        try:
+            with open('history') as file:
+                for line in file.read().splitlines():
+                    s += line+'\n'
+        except Exception:pass
+        for i in range(self.history_window_width):
+            s += '-'
+        s += '\n'
+        for msg in self.this_messages:
+            s += msg+'\n'
+        return s
     
     def ShowHistoryWindow(self):
-        print('d')
-        with open(history_file) as file:
-            for line in file:
-                print(line)
-            
+        self.history_window = tk.Tk()
+        self.history_window.wm_attributes('-toolwindow',True)
+        self.history_window.resizable(width=False, height=False)
+        self.history_window.title('[%s] %s' % ('HISTORY', self.chat_name))
+        
+        text = tk.Text(self.history_window,
+                       exportselection=0,
+                       width=self.history_window_width,
+                       height=10)
+        text.insert(tk.END, self.GetHistoryString())
+        text.config(state=tk.DISABLED)
+        text.pack(side='left',fill='y')
+        
+        scrollbar = tk.Scrollbar(self.history_window)
+        scrollbar.pack(side='right', fill='y')
+        
+        text.config(yscrollcommand=scrollbar.set)
+        scrollbar.config(command=text.yview)
+        
+        self.history_window.geometry('+%d+%d' % self.GetHistoryWindowPos())
+        self.history_window.mainloop()
     
     def SelectAnime(self):
         if hasattr(self, 'anime_lb') and self.anime_lb != None :
@@ -201,14 +240,11 @@ class image_window:
             self.anime_lb.pack(expand=True, fill='both')
         
     def SendText(self):
-        self.this_messages.append(self.input_text.get())
-        self.speak_window.destroy()
-        self.speak_window.quit()
-        self.speak_window = None
-        self.input_text = None
         '''send something here'''
-#         tkmb.showinfo('title', 'message')
-    
+        self.this_messages.append(self.input_text.get())
+        
+        self.input_text.delete(0, tk.END)
+        
     def OnPaint(self, hwnd, message, wparam, lparam):
         dc,ps = win32gui.BeginPaint(hwnd)
         self.Image_list[self.image_index].draw_on_dc(dc, RGB(255,255,255))
@@ -221,8 +257,12 @@ class image_window:
             for each in self.this_messages:
                 file.write(each+'\n')
         after_window_closed()
-        if hasattr(self, 'speak_window') and self.speak_window != None:
-            self.speak_window.quit()
+       
+        try:turnOffTk(self.speak_window)
+        except Exception:pass
+        try:turnOffTk(self.history_window)
+        except Exception:pass
+        
         return True
       
 win = image_window()
