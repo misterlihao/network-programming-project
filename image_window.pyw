@@ -9,7 +9,6 @@ import threading
 import time
 
 import Image
-from _operator import or_
 
 config_file="config"
 history_file="history"
