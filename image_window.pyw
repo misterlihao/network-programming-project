@@ -5,10 +5,6 @@ import win32con
 import win32gui
 
 import tkinter as tk
-import threading
-import time
-
-import Image
 
 config_file="config"
 history_file="history"
@@ -40,7 +36,7 @@ class image_window:
     allowing multiline message
     preview anime
     '''
-    def __init__(self):
+    def __init__(self, after_window_close):
         win32gui.InitCommonControls()
         self.hinst = win32api.GetModuleHandle(None)
         self.image_index = 0
@@ -61,6 +57,7 @@ class image_window:
         self.this_messages=[]
         self.chat_name = 'Friend A'
         self.history_window_width = 30 # in character
+        self.after = after_window_close
     def ReadConfig(self):
         with open(config_file) as file:
             for line in file:
@@ -255,42 +252,11 @@ class image_window:
         with open(history_file, 'a') as file:
             for each in self.this_messages:
                 file.write(each+'\n')
-        after_window_closed()
        
         try:turnOffTk(self.speak_window)
         except Exception:pass
         try:turnOffTk(self.history_window)
         except Exception:pass
+        self.after()
         
         return True
-      
-win = image_window()
-def func():
-    global win
-    while True:
-        time.sleep(0.15)
-        win.SwitchNextImage()
-def after_window_closed():
-    win32gui.PostQuitMessage(0)
-    
-if __name__ == '__main__':
-    win.CreateWindow()
-    win.Resize(256, 128)
-    hbmp1 = win32gui.LoadImage(0, 'shime1.bmp', win32gui.IMAGE_BITMAP, 0, 0,win32gui.LR_LOADFROMFILE)
-    hbmp2 = win32gui.LoadImage(0, 'shime2.bmp', win32gui.IMAGE_BITMAP, 0, 0,win32gui.LR_LOADFROMFILE)
-    hbmp3 = win32gui.LoadImage(0, 'shime3.bmp', win32gui.IMAGE_BITMAP, 0, 0,win32gui.LR_LOADFROMFILE)
-    img1 = Image.Image()
-    img1.append_component(hbmp1, 0, 0, 128, 128)
-    img1.append_component(hbmp2, 128, 0, 128, 128)
-    img2 = Image.Image()
-    img2.append_component(hbmp2, 0, 0, 128, 128)
-    img2.append_component(hbmp3, 128, 0, 128, 128)
-    img3 = Image.Image()
-    img3.append_component(hbmp3, 0, 0, 128, 128)
-    img3.append_component(hbmp1, 128, 0, 128, 128)
-    
-    win.SetImages([img1, img2, img3])
-    win.SwitchNextImage()
-    threading.Thread(target = func).start()
-    win32gui.PumpMessages()
-    print('end')
