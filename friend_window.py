@@ -17,6 +17,8 @@ def func():
 def after_window_closed():
     win32gui.PostQuitMessage(0)
 
+def create_image_window(character_path):
+    pass
 if __name__ == '__main__':
     win = image_window(after_window_closed)
     win.CreateWindow()
