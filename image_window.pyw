@@ -9,6 +9,7 @@ import threading
 import time
 
 import Image
+from _operator import or_
 
 config_file="config"
 history_file="history"
@@ -54,6 +55,7 @@ class image_window:
         except err: 
             self.readCheck=False
             print('no config file')  
+
         self.this_messages=[]
         
     def ReadConfig(self):
@@ -216,13 +218,13 @@ class image_window:
         with open(config_file, 'w') as file:
             file.write('readCheck:'+str(self.readCheck))
         with open(history_file, 'a') as file:
-            for line in self.this_messages:
-                file.write(line+'\n')
+            for each in self.this_messages:
+                file.write(each+'\n')
         after_window_closed()
         if hasattr(self, 'speak_window') and self.speak_window != None:
             self.speak_window.quit()
         return True
-
+      
 win = image_window()
 def func():
     global win
