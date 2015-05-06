@@ -24,7 +24,8 @@ class open_check_online_window():
     def check_online(self):
         ip = self.entry.get()
         try:
-            if True:#if CheckSomeoneOnline(ip) == True:
+            if CheckSomeoneOnline(ip) == True:
+                print(ip)
                 tkmb.showinfo('online check', ip+'is online')
             else:
                 tkmb.showinfo('online check', ip+'is offline')
