@@ -231,24 +231,52 @@ def func():
         win.SwitchNextImage()
 def after_window_closed():
     win32gui.PostQuitMessage(0)
+
+def getName():
+    return 'character1.txt'
+
+def getName2():
+    return 'skeleton1.txt'
     
 if __name__ == '__main__':
     win.CreateWindow()
-    win.Resize(256, 128)
-    hbmp1 = win32gui.LoadImage(0, 'shime1.bmp', win32gui.IMAGE_BITMAP, 0, 0,win32gui.LR_LOADFROMFILE)
-    hbmp2 = win32gui.LoadImage(0, 'shime2.bmp', win32gui.IMAGE_BITMAP, 0, 0,win32gui.LR_LOADFROMFILE)
-    hbmp3 = win32gui.LoadImage(0, 'shime3.bmp', win32gui.IMAGE_BITMAP, 0, 0,win32gui.LR_LOADFROMFILE)
-    img1 = Image.Image()
-    img1.append_component(hbmp1, 0, 0, 128, 128)
-    img1.append_component(hbmp2, 128, 0, 128, 128)
-    img2 = Image.Image()
-    img2.append_component(hbmp2, 0, 0, 128, 128)
-    img2.append_component(hbmp3, 128, 0, 128, 128)
-    img3 = Image.Image()
-    img3.append_component(hbmp3, 0, 0, 128, 128)
-    img3.append_component(hbmp1, 128, 0, 128, 128)
+    win.Resize(150, 150)
     
-    win.SetImages([img1, img2, img3])
+    charFile = open(getName(), 'r')
+    hbmp=[]
+    i=0
+    charData=[]
+    for line in charFile.readlines():       
+        charData.append(line.split())
+        
+    charFile.close()
+    skelData=[]
+    charFile = open(getName2(), 'r')   
+    for line in charFile.readlines():
+        skelData.append(line.split())
+    charFile.close()    
+        
+    charData = sorted(charData,key= lambda temp:int(temp[1]))
+    img=[]
+    skelTypes = 7
+    for i in range(int(len(skelData)/skelTypes)):
+        imgTemp = Image.Image()
+        for skin in charData:
+            temp=[]
+            temp = skelData[i*skelTypes + int(skin[1])-1]
+            skinTemp = skin[0]
+            if int(temp[4]) != 0:
+                skinTemp, st= skinTemp.split('.', 1)
+                skinTemp = skinTemp + '_' + temp[4] + '.bmp' 
+            hbmp2 = win32gui.LoadImage(0, skinTemp, win32gui.IMAGE_BITMAP, 0, 0,win32gui.LR_LOADFROMFILE)
+            imgTemp.append_component(hbmp2, int(temp[0]), int(temp[1]), int(temp[2]), int(temp[3]))
+
+        img.append(imgTemp)
+        
+        
+        
+  
+    win.SetImages(img)
     win.SwitchNextImage()
     threading.Thread(target = func).start()
     win32gui.PumpMessages()
