@@ -3,41 +3,71 @@
 This is supposed to be main window
 '''
 from image_window import image_window
-import win32gui
+import friend_list_item
+import win32gui, win32api, win32con
+import struct
 import time
-import threading
-import Image
-
-def func():
-    global win
-    while True:
-        time.sleep(0.15)
-        win.SwitchNextImage()
-    
-def after_window_closed():
-    win32gui.PostQuitMessage(0)
 
 def create_image_window(character_path):
     pass
-if __name__ == '__main__':
-    win = image_window(after_window_closed)
-    win.CreateWindow()
-    win.Resize(256, 128)
-    hbmp1 = win32gui.LoadImage(0, 'shime1.bmp', win32gui.IMAGE_BITMAP, 0, 0,win32gui.LR_LOADFROMFILE)
-    hbmp2 = win32gui.LoadImage(0, 'shime2.bmp', win32gui.IMAGE_BITMAP, 0, 0,win32gui.LR_LOADFROMFILE)
-    hbmp3 = win32gui.LoadImage(0, 'shime3.bmp', win32gui.IMAGE_BITMAP, 0, 0,win32gui.LR_LOADFROMFILE)
-    img1 = Image.Image()
-    img1.append_component(hbmp1, 0, 0, 128, 128)
-    img1.append_component(hbmp2, 128, 0, 128, 128)
-    img2 = Image.Image()
-    img2.append_component(hbmp2, 0, 0, 128, 128)
-    img2.append_component(hbmp3, 128, 0, 128, 128)
-    img3 = Image.Image()
-    img3.append_component(hbmp3, 0, 0, 128, 128)
-    img3.append_component(hbmp1, 128, 0, 128, 128)
+
+class FriendWin:
+    def __init__(self): 
+        win32gui.InitCommonControls()
+        self.hinst = win32api.GetModuleHandle(None)
+        self.message_map = {
+          win32con.WM_DESTROY: self.OnDestroy,
+          win32con.WM_SYSCOMMAND: self.OnSysCommand,
+        }
+        cn = self.RegisterClass()
+        self.BuildWindow(cn)
+        
+        rect = win32gui.GetClientRect(self.hwnd)
+        self.friend_list = []
+        fn = list('abcdefghij')
+        for i in range(10):
+            friend = friend_list_item.create(self.hwnd, fn[i]*10, 0, 24*i, rect[2], 24)
+            self.friend_list.append(friend)
+        
+        win32gui.ShowWindow(self.hwnd, win32con.SW_NORMAL)
+    def RegisterClass(self):
+        className = "friend_window"
+        wc = win32gui.WNDCLASS()
+        wc.style = win32con.CS_HREDRAW | win32con.CS_VREDRAW
+        wc.lpfnWndProc = self.message_map
+        wc.cbWndExtra = 0
+        wc.hCursor = win32gui.LoadCursor(0, win32con.IDC_ARROW)
+        wc.hbrBackground = win32con.COLOR_WINDOW + 1
+        wc.hIcon = win32gui.LoadIcon(0, win32con.IDI_APPLICATION)
+        wc.lpszClassName = className
+        wc.cbWndExtra = win32con.DLGWINDOWEXTRA + struct.calcsize("Pi")
+        win32gui.RegisterClass(wc)
+        return className
+
+    def BuildWindow(self, className):
+        style = win32con.WS_OVERLAPPED|win32con.WS_CAPTION|win32con.WS_SYSMENU|win32con.WS_MINIMIZEBOX
+        w=200; h=500
+        self.hwnd = win32gui.CreateWindow(
+                             className,
+                             "freind list", style,
+                             win32con.CW_USEDEFAULT,
+                             win32con.CW_USEDEFAULT,
+                             w,h,0,0,self.hinst,None)
+        
+    def OnSysCommand(self, hwnd, msg, wp, lp):
+        '''if wp == win32con.SC_MINIMIZE:
+            win32gui.ShowWindow(self.hwnd, 0)
+            time.sleep(2)
+            win32gui.ShowWindow(self.hwnd, 1)
+            return True
+        '''
+        return win32gui.DefWindowProc(hwnd, msg, wp, lp)
     
-    win.SetImages([img1, img2, img3])
-    win.SwitchNextImage()
-    threading.Thread(target = func).start()
+    def OnDestroy(self, hwnd, msg, wp, lp):
+        win32gui.PostQuitMessage(0)
+        return True
+
+if __name__ == '__main__':
+    mainwin = FriendWin()
     win32gui.PumpMessages()
     print('end')
