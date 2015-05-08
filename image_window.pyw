@@ -237,21 +237,19 @@ def getName():
 
 def getName2():
     return 'skeleton1.txt'
-    
-if __name__ == '__main__':
-    win.CreateWindow()
-    win.Resize(150, 150)
-    
-    charFile = open(getName(), 'r')
-    hbmp=[]
-    i=0
+
+def getCharacter(fileName):
+    charFile = open(fileName, 'r')
     charData=[]
     for line in charFile.readlines():       
         charData.append(line.split())
-        
     charFile.close()
+    return charData
+
+def showAction(charData, skelFile):
+    hbmp=[]
     skelData=[]
-    charFile = open(getName2(), 'r')   
+    charFile = open(skelFile, 'r')   
     for line in charFile.readlines():
         skelData.append(line.split())
     charFile.close()    
@@ -273,11 +271,18 @@ if __name__ == '__main__':
 
         img.append(imgTemp)
         
-        
-        
-  
     win.SetImages(img)
     win.SwitchNextImage()
+        
+    
+if __name__ == '__main__':
+    win.CreateWindow()
+    win.Resize(150, 150)
+
+    charData = getCharacter(getName())
+    showAction(charData, getName2())
+
+    
     threading.Thread(target = func).start()
     win32gui.PumpMessages()
     print('end')
