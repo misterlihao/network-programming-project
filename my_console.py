@@ -28,7 +28,7 @@ def Online():
     '''    
     s = CreatePort(check_online_type, check_online_ip, check_online_port, check_online_timeout)
     threading.Thread(target=ReceivingOnlineChecks, args=(s)).start()
-    friend_list=RefreshOnlineFriends(friend_list)#refreshing and broadcast
+    window_list_no_use_now=RefreshOnlineFriends(window_list_no_use_now)#refreshing and broadcast
     threading.Thread(target=StartRecvMessage).start()#write it when doing "receiving message" function
     '''
     print(friend_list)

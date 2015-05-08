@@ -13,7 +13,19 @@ import tkinter as tk
 import message_transaction as mt
 config_file="config"
 history_file="history"
-registered = False
+#execute once
+className = "image_window"
+wc = win32gui.WNDCLASS()
+wc.style = win32con.CS_HREDRAW | win32con.CS_VREDRAW
+wc.lpfnWndProc = win32gui.DefWindowProc
+wc.cbWndExtra = 0
+wc.hCursor = win32gui.LoadCursor(0, win32con.IDC_ARROW)
+wc.hbrBackground = win32con.COLOR_WINDOW + 1
+wc.hIcon = win32gui.LoadIcon(0, win32con.IDI_APPLICATION)
+wc.lpszClassName = className
+wc.cbWndExtra = win32con.DLGWINDOWEXTRA + struct.calcsize("Pi")
+# wc.hIconSm = 0
+win32gui.RegisterClass(wc)
 
 def RGB(r, g, b):
     r = r & 0xFF
@@ -34,8 +46,6 @@ class image_window:
     stuck in run() and released after closed
     SetImages() to set a list of paths
     SwitchNextImage() let you switch to next image
-    '''
-    '''
     TODO 
     sending message
     allowing multiline message
@@ -75,26 +85,9 @@ class image_window:
                     self.readCheck=bool(cap[1]=='True')
                     break
     def CreateWindow(self):
-        global registered
-        if registered == False:
-            registered = True
-            self.RegisterClass()
         self.BuildWindow("image_window")
-    def RegisterClass(self):
-        className = "image_window"
-        wc = win32gui.WNDCLASS()
-        wc.style = win32con.CS_HREDRAW | win32con.CS_VREDRAW
-        wc.lpfnWndProc = self.message_map
-        wc.cbWndExtra = 0
-        wc.hCursor = win32gui.LoadCursor(0, win32con.IDC_ARROW)
-        wc.hbrBackground = win32con.COLOR_WINDOW + 1
-        wc.hIcon = win32gui.LoadIcon(0, win32con.IDI_APPLICATION)
-        wc.lpszClassName = className
-        wc.cbWndExtra = win32con.DLGWINDOWEXTRA + struct.calcsize("Pi")
-        # wc.hIconSm = 0
-        win32gui.RegisterClass(wc)
-        return className
-
+        win32gui.SetWindowLong(self.hwnd, win32con.GWL_WNDPROC, self.message_map)
+        
     def BuildWindow(self, className):
         style = win32con.WS_POPUP|win32con.WS_VISIBLE
         xstyle = win32con.WS_EX_LAYERED
@@ -143,6 +136,7 @@ class image_window:
         win32gui.AppendMenu(menu, win32con.MF_STRING, 1, 'speak')
         win32gui.AppendMenu(menu, win32con.MF_STRING, 2, 'read check')
         win32gui.AppendMenu(menu, win32con.MF_STRING, 3, 'historical messages')
+        win32gui.AppendMenu(menu, win32con.MF_STRING, 4, 'close')
         if self.readCheck == True: #check new menu's mark
             win32gui.CheckMenuItem(menu, 2, win32con.MF_CHECKED)
         x, y = getXY(lparam)
@@ -159,15 +153,19 @@ class image_window:
                         self.speak_window = None
                     except Exception:
                         self.ShowSpeakWindow()
-        if item_id == 2:
+        elif item_id == 2:
+
             self.readCheck=not self.readCheck
-        if item_id == 3:
+        elif item_id == 3:
             try:
                 turnOffTk(self.history_window)
                 self.history_window = None
             except Exception:
                 self.ShowHistoryWindow()
+        elif item_id == 4:
+            win32gui.DestroyWindow(self.hwnd)
         win32gui.DestroyMenu(menu)
+        return True
     
     def OnMove(self, hwnd, message, wparam, lparam):
         try:self.speak_window.geometry('+%d+%d' % self.GetSpeakWindowPos())
@@ -249,7 +247,7 @@ class image_window:
             self.anime_lb.pack(expand=True, fill='both')
         
     def SendText(self):
-        self.conn_socket.send(self.input_text.get().encode('ascii'))
+        self.conn_socket.send(self.input_text.get().encode('utf8'))
         self.this_messages.append(self.input_text.get())
         
         self.input_text.delete(0, tk.END)
@@ -274,7 +272,6 @@ class image_window:
         
         return True
 
-win = image_window(lambda:None)
 def func():
     global win
     while True:
@@ -325,6 +322,7 @@ def showAction(charData, skelFile):
         
     
 if __name__ == '__main__':
+    win = image_window(lambda:None)
     win.CreateWindow()
     win.Resize(150, 150)
 
@@ -332,7 +330,9 @@ if __name__ == '__main__':
     showAction(charData, getName2())
 
     
-    threading.Thread(target = func).start()
+    myThread = threading.Thread(target = func)
+    myThread.setDaemon(True)
+    myThread.start()
     myThread = threading.Thread(target=oc.ReceivingOnlineChecks)
     myThread.setDaemon(True)
     myThread.start()

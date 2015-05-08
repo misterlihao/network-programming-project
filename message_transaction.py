@@ -1,6 +1,5 @@
 import socket
 import threading
-import image_window as iw
 
 def StartTalking(ip):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -29,7 +28,7 @@ def ReceivingMessagesFrom(*arg):
         try:  
             conn.settimeout(5)  
             buf = conn.recv(1024)
-            print(buf.decode('ascii'))
+            print(buf.decode('utf8'))
             #show_message  
             #conn.send('welcome to server!')  
         except :  
