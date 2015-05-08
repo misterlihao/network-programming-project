@@ -3,6 +3,9 @@ import struct
 import win32api
 import win32con
 import win32gui
+import threading
+import Image
+import time
 
 import tkinter as tk
 
@@ -260,3 +263,61 @@ class image_window:
         self.after()
         
         return True
+
+win = image_window(lambda:None)
+def func():
+    global win
+    while True:
+        time.sleep(0.15)
+        win.SwitchNextImage()
+
+def getName():
+    return 'data/character1.txt'
+
+def getName2():
+    return 'data/skeleton1.txt'
+    
+if __name__ == '__main__':
+    win.CreateWindow()
+    win.Resize(150, 150)
+    
+    charFile = open(getName(), 'r')
+    hbmp=[]
+    i=0
+    charData=[]
+    for line in charFile.readlines():       
+        charData.append(line.split())
+        
+    charFile.close()
+    skelData=[]
+    charFile = open(getName2(), 'r')   
+    for line in charFile.readlines():
+        skelData.append(line.split())
+    charFile.close()    
+        
+    charData = sorted(charData,key= lambda temp:int(temp[1]))
+    img=[]
+    skelTypes = 7
+    for i in range(int(len(skelData)/skelTypes)):
+        imgTemp = Image.Image()
+        for skin in charData:
+            temp=[]
+            temp = skelData[i*skelTypes + int(skin[1])-1]
+            skinTemp = skin[0]
+            if int(temp[4]) != 0:
+                skinTemp, st= skinTemp.split('.', 1)
+                skinTemp = skinTemp + '_' + temp[4] + '.bmp' 
+                print(skinTemp)
+            hbmp2 = win32gui.LoadImage(0, skinTemp, win32gui.IMAGE_BITMAP, 0, 0,win32gui.LR_LOADFROMFILE)
+            imgTemp.append_component(hbmp2, int(temp[0]), int(temp[1]), int(temp[2]), int(temp[3]))
+
+        img.append(imgTemp)
+        
+        
+        
+    print(img)
+    win.SetImages(img)
+    win.SwitchNextImage()
+    threading.Thread(target = func).start()
+    win32gui.PumpMessages()
+    print('end')
