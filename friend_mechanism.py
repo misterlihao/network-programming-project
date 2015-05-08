@@ -1,5 +1,4 @@
 import sys
-import online_check as oc
 
 def ReadFriendList(file_name):
     friends_status_list = []

@@ -6,9 +6,11 @@ import win32gui
 import threading
 import Image
 import time
+import socket
+import online_check as oc
 
 import tkinter as tk
-
+import message_transaction as mt
 config_file="config"
 history_file="history"
 registered = False
@@ -39,7 +41,7 @@ class image_window:
     allowing multiline message
     preview anime
     '''
-    def __init__(self, after_window_close):
+    def __init__(self, after_window_close, ip='127.0.0.1'):
         win32gui.InitCommonControls()
         self.hinst = win32api.GetModuleHandle(None)
         self.image_index = 0
@@ -61,6 +63,9 @@ class image_window:
         self.chat_name = 'Friend A'
         self.history_window_width = 30 # in character
         self.after = after_window_close
+        self.ip = ip
+        self.connected = False
+        self.conn_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     def ReadConfig(self):
         with open(config_file) as file:
             for line in file:
@@ -144,11 +149,16 @@ class image_window:
         x, y = win32gui.ClientToScreen(hwnd, (x, y))
         item_id = win32gui.TrackPopupMenu(menu, 0x100, x, y, 0, hwnd, None) #0x100 means return item id right after
         if item_id == 1:
-            try:
-                turnOffTk(self.speak_window)
-                self.speak_window = None
-            except Exception:
-                self.ShowSpeakWindow()
+            if self.connected == False:
+                if oc.CheckSomeoneOnline(self.ip) == False:
+                    print('He is Offline')
+                else:
+                    self.conn_socket = mt.StartTalking(self.ip)
+                    try:
+                        turnOffTk(self.speak_window)
+                        self.speak_window = None
+                    except Exception:
+                        self.ShowSpeakWindow()
         if item_id == 2:
             self.readCheck=not self.readCheck
         if item_id == 3:
@@ -239,7 +249,7 @@ class image_window:
             self.anime_lb.pack(expand=True, fill='both')
         
     def SendText(self):
-        '''send something here'''
+        self.conn_socket.send(self.input_text.get().encode('ascii'))
         self.this_messages.append(self.input_text.get())
         
         self.input_text.delete(0, tk.END)
@@ -323,5 +333,12 @@ if __name__ == '__main__':
 
     
     threading.Thread(target = func).start()
+    myThread = threading.Thread(target=oc.ReceivingOnlineChecks)
+    myThread.setDaemon(True)
+    myThread.start()
+    myThread = threading.Thread(target=mt.ReceivingConnections)
+    myThread.setDaemon(True)
+    myThread.start()
+    
     win32gui.PumpMessages()
     print('end')

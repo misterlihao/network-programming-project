@@ -35,6 +35,3 @@ def CheckSomeoneOnline(ip):
     
     s.close()
     return True
-    
-def StartRecvMessage():
-    '''wait_for_message'''

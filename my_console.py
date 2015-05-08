@@ -2,6 +2,7 @@ import threading
 import online_check as oc
 import friend_mechanism as fm
 import check_online_window as cow
+import image_window as im
 
 
 check_online_ip='127.0.0.1'
@@ -19,8 +20,11 @@ def Online():
     except:
         pass
     
-    threading.Thread(target=oc.ReceivingOnlineChecks).start()
-    while(1):cow.open_check_online_window(100, 100)
+    myThread = threading.Thread(target=oc.ReceivingOnlineChecks)
+    myThread.setDaemon(True)
+    myThread.start()
+    #while(1):cow.open_check_online_window(100, 100)
+
     '''    
     s = CreatePort(check_online_type, check_online_ip, check_online_port, check_online_timeout)
     threading.Thread(target=ReceivingOnlineChecks, args=(s)).start()
