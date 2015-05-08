@@ -1,5 +1,4 @@
 import wait_socket_messages as wsm
-import socket_handler as sh
 import socket
 
 check_online_ip='127.0.0.1'
