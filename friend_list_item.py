@@ -3,7 +3,7 @@ this is a child (a window) of the friend window (a window_list_no_use_now)
 '''
 import win32con, win32gui, win32api
 import struct
-from image_window import image_window
+from image_window import image_window, getName2
 import Image
 #execute once
 className = "window_list_item"
@@ -71,19 +71,12 @@ class View:
         win32gui.SetWindowText(self.chat_btn, 'close')
         self.chat_win = image_window(self.OnChatClosed)
         self.chat_win.CreateWindow()
-        self.chat_win.Resize(256, 128)
-        hbmp1 = win32gui.LoadImage(0, 'shime1.bmp', win32gui.IMAGE_BITMAP, 0, 0,win32gui.LR_LOADFROMFILE)
-        hbmp2 = win32gui.LoadImage(0, 'shime2.bmp', win32gui.IMAGE_BITMAP, 0, 0,win32gui.LR_LOADFROMFILE)
-        img1 = Image.Image()
-        img1.append_component(hbmp1, 0, 0, 128, 128)
-        img1.append_component(hbmp2, 128, 0, 128, 128)
-        img2 = Image.Image()
-        img2.append_component(hbmp2, 0, 0, 128, 128)
-        img2.append_component(hbmp1, 128, 0, 128, 128)
-        self.chat_win.SetImages([img1, img2])
+        self.chat_win.Resize(150, 150)
+        self.chat_win.showAction(getName2())
         
     def OnChatClosed(self):
         win32gui.SetWindowText(self.chat_btn, 'chat')
+        
         self.chat_win = None
         
     def OnDestroy(self, hwnd, msg, wp, lp):

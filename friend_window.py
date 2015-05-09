@@ -6,10 +6,10 @@ from image_window import image_window
 import friend_list_item
 import win32gui, win32api, win32con
 import struct
-import time
-
-def create_image_window(character_path):
-    pass
+from FriendList import FriendList
+import threading
+import online_check as oc
+import message_transaction as mt
 
 class FriendWin:
     def __init__(self): 
@@ -23,13 +23,13 @@ class FriendWin:
         self.BuildWindow(cn)
         
         rect = win32gui.GetClientRect(self.hwnd)
-        self.friend_list = []
-        fn = list('abcdefghij')
-        for i in range(10):
-            friend = friend_list_item.create(self.hwnd, fn[i]*10, 0, 24*i, rect[2], 24)
-            self.friend_list.append(friend)
+        self.friend_list = FriendList('friends')
+        for i in range(len(self.friend_list)):
+            name = self.friend_list[i][1]
+            friend_list_item.create(self.hwnd, name, 0, 24*i, rect[2], 24)
         
         win32gui.ShowWindow(self.hwnd, win32con.SW_NORMAL)
+        
     def RegisterClass(self):
         className = "friend_window"
         wc = win32gui.WNDCLASS()
@@ -69,5 +69,11 @@ class FriendWin:
 
 if __name__ == '__main__':
     mainwin = FriendWin()
+    myThread = threading.Thread(target=oc.ReceivingOnlineChecks)
+    myThread.setDaemon(True)
+    myThread.start()
+    myThread = threading.Thread(target=mt.ReceivingConnections)
+    myThread.setDaemon(True)
+    myThread.start()
     win32gui.PumpMessages()
     print('end')

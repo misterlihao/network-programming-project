@@ -39,6 +39,15 @@ def getXY(lparam):
 def turnOffTk(tk_object):
     tk_object.destroy()
     tk_object.quit()
+
+def getCharacter(fileName):
+    charFile = open(fileName, 'r')
+    charData=[]
+    for line in charFile.readlines():       
+        charData.append(line.split())
+    charFile.close()
+    return charData
+
 class image_window:
     '''
     modify .message_map to handle messages
@@ -271,68 +280,54 @@ class image_window:
         self.after()
         
         return True
+    
+    def getName(self):
+        return 'data/character1.txt'
+    def showAction(self, skelFile):
+        skelData=[]
+        charFile = open(skelFile, 'r')   
+        for line in charFile.readlines():
+            skelData.append(line.split())
+        charFile.close()    
+        
+        charData = getCharacter(self.getName())
+        charData = sorted(charData,key= lambda temp:int(temp[1]))
+        img=[]
+        skelTypes = 7
+        for i in range(int(len(skelData)/skelTypes)):
+            imgTemp = Image.Image()
+            for skin in charData:
+                temp=[]
+                temp = skelData[i*skelTypes + int(skin[1])-1]
+                skinTemp = skin[0]
+                if int(temp[4]) != 0:
+                    skinTemp, st= skinTemp.split('.', 1)
+                    skinTemp = skinTemp + '_' + temp[4] + '.bmp' 
+                hbmp2 = win32gui.LoadImage(0, skinTemp, win32gui.IMAGE_BITMAP, 0, 0,win32gui.LR_LOADFROMFILE)
+                imgTemp.append_component(hbmp2, int(temp[0]), int(temp[1]), int(temp[2]), int(temp[3]))
+    
+            img.append(imgTemp)
+            
+        self.SetImages(img)
+        myThread = threading.Thread(target = func, args=(self,))
+        myThread.setDaemon(True)
+        myThread.start()
+        
 
-def func():
-    global win
+def getName2():
+    return 'data/skeleton1.txt'
+def func(*args):
+    win,= args
     while True:
         time.sleep(0.15)
         win.SwitchNextImage()
 
-def getName():
-    return 'data/character1.txt'
-
-def getName2():
-    return 'data/skeleton1.txt'
-
-def getCharacter(fileName):
-    charFile = open(fileName, 'r')
-    charData=[]
-    for line in charFile.readlines():       
-        charData.append(line.split())
-    charFile.close()
-    return charData
-
-def showAction(charData, skelFile):
-    hbmp=[]
-    skelData=[]
-    charFile = open(skelFile, 'r')   
-    for line in charFile.readlines():
-        skelData.append(line.split())
-    charFile.close()    
-        
-    charData = sorted(charData,key= lambda temp:int(temp[1]))
-    img=[]
-    skelTypes = 7
-    for i in range(int(len(skelData)/skelTypes)):
-        imgTemp = Image.Image()
-        for skin in charData:
-            temp=[]
-            temp = skelData[i*skelTypes + int(skin[1])-1]
-            skinTemp = skin[0]
-            if int(temp[4]) != 0:
-                skinTemp, st= skinTemp.split('.', 1)
-                skinTemp = skinTemp + '_' + temp[4] + '.bmp' 
-            hbmp2 = win32gui.LoadImage(0, skinTemp, win32gui.IMAGE_BITMAP, 0, 0,win32gui.LR_LOADFROMFILE)
-            imgTemp.append_component(hbmp2, int(temp[0]), int(temp[1]), int(temp[2]), int(temp[3]))
-
-        img.append(imgTemp)
-        
-    win.SetImages(img)
-    win.SwitchNextImage()
-        
-    
 if __name__ == '__main__':
     win = image_window(lambda:win32gui.PostQuitMessage(0))
     win.CreateWindow()
     win.Resize(150, 150)
-
-    charData = getCharacter(getName())
-    showAction(charData, getName2())
-
+    win.showAction(getName2())
     
-    myThread = threading.Thread(target = func)
-    myThread.setDaemon(True)
-    myThread.start()
     myThread = threading.Thread(target=oc.ReceivingOnlineChecks)
     myThread.setDaemon(True)
     myThread.start()
