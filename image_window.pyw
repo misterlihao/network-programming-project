@@ -322,7 +322,7 @@ def showAction(charData, skelFile):
         
     
 if __name__ == '__main__':
-    win = image_window(lambda:None)
+    win = image_window(lambda:win32gui.PostQuitMessage(0))
     win.CreateWindow()
     win.Resize(150, 150)
 
