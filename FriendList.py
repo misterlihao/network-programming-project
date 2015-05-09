@@ -29,6 +29,9 @@ class FriendList:
         self.ip_name_status_list.append([ip, name, 'Off'])
         
         pass
+    def __getiem(self, arg):
+        return self.ip_name_status_list[arg]
+        
     def __iter__(self):
         '''
         iteration of [ip, name, status]
