@@ -3,7 +3,7 @@ this is a child (a window) of the friend window (a window_list_no_use_now)
 '''
 import win32con, win32gui, win32api
 import struct
-from image_window import image_window, getName2
+from image_window import image_window, getSkelFile
 import Image
 #execute once
 className = "window_list_item"
@@ -72,7 +72,7 @@ class View:
         self.chat_win = image_window(self.OnChatClosed)
         self.chat_win.CreateWindow()
         self.chat_win.Resize(150, 150)
-        self.chat_win.showAction(getName2())
+        self.chat_win.showAction(getSkelFile())
         
     def OnChatClosed(self):
         win32gui.SetWindowText(self.chat_btn, 'chat')

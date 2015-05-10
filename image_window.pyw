@@ -43,10 +43,11 @@ def turnOffTk(tk_object):
 def getCharacter(fileName):
     charFile = open(fileName, 'r')
     charData=[]
+    length, height = charFile.readline().split()
     for line in charFile.readlines():       
         charData.append(line.split())
     charFile.close()
-    return charData
+    return int(length), int(height), charData
 
 class image_window:
     '''
@@ -280,8 +281,7 @@ class image_window:
         self.after()
         
         return True
-    
-    def getName(self):
+    def getCharFile(self):
         return 'data/character1.txt'
     def showAction(self, skelFile):
         skelData=[]
@@ -290,22 +290,33 @@ class image_window:
             skelData.append(line.split())
         charFile.close()    
         
-        charData = getCharacter(self.getName())
-        charData = sorted(charData,key= lambda temp:int(temp[1]))
+        x_size, y_size, charData = getCharacter(self.getCharFile())
+        win.Resize(x_size, y_size)
+        charData = sorted(charData,key= lambda temp:int(temp[2]))
         img=[]
         skelTypes = 7
         for i in range(int(len(skelData)/skelTypes)):
             imgTemp = Image.Image()
-            for skin in charData:
-                temp=[]
-                temp = skelData[i*skelTypes + int(skin[1])-1]
+            temp = skelData[i*skelTypes]
+            charDataChange=[]
+            if int(temp[5]) != 0:
+                for skin in charData:
+                    temp = skelData[i*skelTypes + int(skin[1])-1]
+                    skin[2] = temp[5]
+                    charDataChange.append(skin)
+                charDataChange = sorted(charDataChange,key= lambda temp:int(temp[2]))
+            else:
+                charDataChange = charData
+            
+            for skin in charDataChange:
+                temp = skelData[i*skelTypes + int(skin[1])-1] 
                 skinTemp = skin[0]
                 if int(temp[4]) != 0:
                     skinTemp, st= skinTemp.split('.', 1)
-                    skinTemp = skinTemp + '_' + temp[4] + '.bmp' 
+                    skinTemp = skinTemp + '_' + temp[4] + '.bmp'
+                
                 hbmp2 = win32gui.LoadImage(0, skinTemp, win32gui.IMAGE_BITMAP, 0, 0,win32gui.LR_LOADFROMFILE)
                 imgTemp.append_component(hbmp2, int(temp[0]), int(temp[1]), int(temp[2]), int(temp[3]))
-    
             img.append(imgTemp)
             
         self.SetImages(img)
@@ -314,8 +325,10 @@ class image_window:
         myThread.start()
         
 
-def getName2():
-    return 'data/skeleton1.txt'
+
+
+def getSkelFile():
+    return 'data/skeleton5.txt'
 def func(*args):
     win,= args
     while True:
@@ -325,8 +338,9 @@ def func(*args):
 if __name__ == '__main__':
     win = image_window(lambda:win32gui.PostQuitMessage(0))
     win.CreateWindow()
+    #x_size, y_size, charData = getCharacter(getCharFile())
     win.Resize(150, 150)
-    win.showAction(getName2())
+    win.showAction(getSkelFile())
     
     myThread = threading.Thread(target=oc.ReceivingOnlineChecks)
     myThread.setDaemon(True)
