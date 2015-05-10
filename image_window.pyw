@@ -283,7 +283,7 @@ class image_window:
         return True
     def getCharFile(self):
         return 'data/character1.txt'
-    def showAction(self, skelFile):
+    def showAction(self, skelFile, acting=True):
         skelData=[]
         charFile = open(skelFile, 'r')   
         for line in charFile.readlines():
@@ -291,7 +291,7 @@ class image_window:
         charFile.close()    
         
         x_size, y_size, charData = getCharacter(self.getCharFile())
-        win.Resize(x_size, y_size)
+        self.Resize(x_size, y_size)
         charData = sorted(charData,key= lambda temp:int(temp[2]))
         img=[]
         skelTypes = 7
@@ -320,11 +320,12 @@ class image_window:
             img.append(imgTemp)
             
         self.SetImages(img)
-        myThread = threading.Thread(target = func, args=(self,))
-        myThread.setDaemon(True)
-        myThread.start()
-        
-
+        if acting:
+            myThread = threading.Thread(target = func, args=(self,))
+            myThread.setDaemon(True)
+            myThread.start()
+    def showCharacter(self, skelFile):
+        self.showAction(skelFile, False)
 
 
 def getSkelFile():

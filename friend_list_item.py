@@ -72,7 +72,7 @@ class View:
         self.chat_win = image_window(self.OnChatClosed)
         self.chat_win.CreateWindow()
         self.chat_win.Resize(150, 150)
-        self.chat_win.showAction(getSkelFile())
+        self.chat_win.showCharacter(getSkelFile())
         
     def OnChatClosed(self):
         win32gui.SetWindowText(self.chat_btn, 'chat')
