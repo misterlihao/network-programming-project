@@ -75,7 +75,7 @@ class FriendListItemView:
             except :
                 try:
                     sock = mt.StartTalking(self.model.ip)
-                    self.StartChat()
+                    self.StartChat(sock)
                 except:
                     print(self.model.ip, 'is offline')
                     self.StartChat()
