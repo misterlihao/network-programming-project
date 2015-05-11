@@ -10,9 +10,7 @@ import threading
 import online_check as oc
 import message_transaction as mt
 import queue
-WM_CONNACCEPTED = win32con.WM_APP+1
-WM_CHATMSGRECV = win32con.WM_APP+2
-
+from WM_APP_MESSAGES import *
 
 
 class FriendWin:
@@ -27,16 +25,19 @@ class FriendWin:
           win32con.WM_DESTROY: self.OnDestroy,
           win32con.WM_SYSCOMMAND: self.OnSysCommand,
           WM_CONNACCEPTED: self.OnConnAccepted,
-          WM_CHATMSGRECV: self.OnChatMessageReceived,
         }
         cn = self.RegisterClass()
         self.BuildWindow(cn)
         
         rect = win32gui.GetClientRect(self.hwnd)
+        '''get friend list object'''
         self.friend_list = FriendList('friends')
+        '''create list of child window'''
         self.friend_list_item_list = []
+        '''for thread to insert new connections into
+           and for main thread to get new connections from'''
         self.newconn_queue = queue.Queue()
-        self.chatmsg_queue = queue.Queue()
+        '''create child windows of friends'''
         for i in range(len(self.friend_list)):
             name = self.friend_list[i][1]
             ip = self.friend_list[i][0]
@@ -44,11 +45,11 @@ class FriendWin:
             self.friend_list_item_list.append(fli)
         
         win32gui.ShowWindow(self.hwnd, win32con.SW_NORMAL)
-        
-        self.sockList = []
+        '''begin responding to online checks from others'''
         myThread = threading.Thread(target=oc.ReceivingOnlineChecks)
         myThread.setDaemon(True)
         myThread.start()
+        '''begin accepting connections to chat''' 
         myThread = threading.Thread(target=mt.ReceivingConnections, args=(self.OnConnAcceptInThread,))
         myThread.setDaemon(True)
         myThread.start()
@@ -104,46 +105,14 @@ class FriendWin:
         be aware of that the order of connection may not be ordered by time
         '''
         sock, addr = self.newconn_queue.get()
-        self.sockList.append(sock)
         
         friend_list_item = None
         for fli in self.friend_list_item_list:
             if fli.IsMe(addr[0]):
                 friend_list_item = fli
         
-        myThread = threading.Thread(target= self.listen_to_chat_messagesInThread, 
-                args=(sock, self.friend_list_item_list.index(fli)))
-        myThread.setDaemon(True)
-        myThread.start()
-        
-        print('user ', self.friend_list_item_list.index(fli), ' connected')
-        friend_list_item.StartChat()
-        print(addr)
-    
-    def listen_to_chat_messagesInThread(self, *args):
-        '''
-        pre porcess messages in this function
-        maybe unpack your message here 
-        (if it was packed to ensure the completeness) 
-        '''
-        print('begin  recving')
-        sock, friend_index = args
-        while True:
-            try:
-                msg = sock.recv(1000)
-                if msg == b"":
-                    raise Exception()
-            except:
-                print('recv fail')
-                return
-            msg = msg.decode('utf8')
-            '''send the message here.Control it here'''
-            self.chatmsg_queue.put((friend_index, msg))
-            win32gui.SendMessage(self.hwnd, WM_CHATMSGRECV, 0, 0)
-        
-    def OnChatMessageReceived(self, hwnd, message, wp, lp):
-        friend_index, msg = self.chatmsg_queue.get()
-        self.friend_list_item_list[friend_index].OnChatMessageReceived(msg)
+        print('user', friend_list_item.model.friend_name, 'connected at', addr)
+        friend_list_item.StartChat(sock)
     
     def OnDestroy(self, hwnd, msg, wp, lp):
         win32gui.PostQuitMessage(0)

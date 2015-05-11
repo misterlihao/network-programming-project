@@ -60,6 +60,7 @@ class FriendListItemView:
             130, 0, 70, 24, self.hwnd, _id,
             win32gui.GetModuleHandle(None),
             None)
+        
     def OnCommand(self, hwnd, msg, wp, lp):
         '''win32 callback
         ensure you know what you're doing'''
@@ -89,11 +90,11 @@ class FriendListItemView:
     def StartChat(self, sock=None):
         '''
         Create a image_window here
-        supposed this is just called once before a corresponding win32gui.DestroyWindow
+        should be the only entrance of image_window
+        supposed just called once before a corresponding win32gui.DestroyWindow
         '''
         win32gui.SetWindowText(self.chat_btn, 'close')
-        self.chat_win = image_window(self.OnChatClosed, sock, self.model.ip)
-        self.chat_win.CreateWindow()
+        self.chat_win = image_window(self.OnChatClosed, self.model.friend_name, sock, self.model.ip)
         self.chat_win.showCharacter(getSkelFile())
     
     def IsMe(self, ip):
@@ -102,17 +103,13 @@ class FriendListItemView:
         '''
         return ip == self.model.ip
     
-    def OnChatMessageReceived(self, msg):
-        '''
-        the existence of self.chat_win is supposed
-        '''
-        self.chat_win.OnChatMessageReceived(msg)
     def OnChatClosed(self):
-        '''
-        hand made callback, passed to image_window
+        '''hand made callback, passed to image_window
+        called after image_window closed
         ensure you know what you're doing'''
+        '''set button text 'chat' '''
         win32gui.SetWindowText(self.chat_btn, 'chat')
-        
+        '''for next open'''
         self.chat_win = None
         
     def OnDestroy(self, hwnd, msg, wp, lp):

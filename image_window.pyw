@@ -11,6 +11,8 @@ import online_check as oc
 import tkinter as tk
 import message_transaction as mt
 import tkinter.messagebox as tkmb
+from WM_APP_MESSAGES import *
+import queue
 config_file="config"
 history_file="history"
 #execute once
@@ -61,13 +63,15 @@ class image_window:
     allowing multiline message
     preview anime
     '''
-    def __init__(self, after_window_close, sock, ip, characterFile='data/character1.txt'):
+    def __init__(self, after_window_close, friend_name, sock, ip, characterFile='data/character1.txt'):
         '''
         sock maybe None, indicates the window is not connected currently.
         '''
         win32gui.InitCommonControls()
         self.hinst = win32api.GetModuleHandle(None)
+        '''for show action easy to draw'''
         self.image_index = 0
+        '''for show action easy to draw'''
         self.Image_list = []
         self.message_map = {
           win32con.WM_DESTROY: self.OnDestroy,
@@ -75,20 +79,42 @@ class image_window:
           win32con.WM_PAINT: self.OnPaint,
           win32con.WM_RBUTTONUP: self.OnRButtonUp,
           win32con.WM_MOVE: self.OnMove,
+          WM_CHATMSGRECV: self.OnChatMessageReceived,
         }
+        '''create the window '''
+        self.BuildWindow("image_window")
+        '''set the message mapping '''
+        win32gui.SetWindowLong(self.hwnd, win32con.GWL_WNDPROC, self.message_map)
+        '''read the configurations from file'''
         try:
             self.ReadConfig()
         except Exception: 
             self.readCheck=False
             print('no config file')  
-
+        '''history'''
         self.this_messages=[]
-        self.chat_name = 'Friend A'
+        '''for display'''
+        self.chat_name = friend_name
         self.history_window_width = 30 # in character
+        '''callback function to be execute in ondestroy'''
         self.after = after_window_close
+        '''for socket sonnection'''
         self.ip = ip
+        '''the socket , whether connected or not'''
         self.conn_socket = sock
+        '''the character file (path of bitmaps)'''
         self.charFile = characterFile
+        '''if the socket is connected, not validated already'''
+        self.connected = False
+        '''the chat msg queue for thread to insert into
+           and for main thread to get from'''
+        self.chatmsg_queue = queue.Queue()
+        '''thread must be correctly terminated in some time (eg: ondestroy)
+            and socket must be terminate and released in some time, too'''
+        if self.conn_socket != None:
+            threading.Thread(target=self.listen_to_chat_messagesInThread).start()
+            self.connected = True
+        
     def ReadConfig(self):
         with open(config_file) as file:
             for line in file:
@@ -97,9 +123,6 @@ class image_window:
                 if cap[0] == 'readCheck':
                     self.readCheck=bool(cap[1]=='True')
                     break
-    def CreateWindow(self):
-        self.BuildWindow("image_window")
-        win32gui.SetWindowLong(self.hwnd, win32con.GWL_WNDPROC, self.message_map)
         
     def BuildWindow(self, className):
         style = win32con.WS_POPUP|win32con.WS_VISIBLE
@@ -120,11 +143,13 @@ class image_window:
                              None)
         win32gui.SetLayeredWindowAttributes(self.hwnd, RGB(255,255,255),0,win32con.LWA_COLORKEY)
     def SetImages(self, Image_list):
+        '''private purpose, for showing action implementation'''
         self.Image_list = Image_list
         self.image_index = 0
     
     def SwitchNextImage(self):
-        '''maybe call Resize here'''
+        '''private purpose, for showing action implementation
+           maybe call Resize here'''
         self.image_index = (self.image_index+1)%len(self.Image_list)
         
         #redrawing
@@ -139,7 +164,7 @@ class image_window:
     
     def OnNCCreate(self, hwnd, message, wparam, lparam):
         '''
-        DO NOT edit things here unless you really know what you're doing
+        DO NOT edit unless you know what you're doing
         '''
         return True
     
@@ -157,7 +182,8 @@ class image_window:
             win32gui.CheckMenuItem(menu, 2, win32con.MF_CHECKED)
         x, y = getXY(lparam)
         x, y = win32gui.ClientToScreen(hwnd, (x, y))
-        item_id = win32gui.TrackPopupMenu(menu, 0x100, x, y, 0, hwnd, None) #0x100 means return item id right after
+        '''show the popup menu, 0x100 means return item id right after'''
+        item_id = win32gui.TrackPopupMenu(menu, 0x100, x, y, 0, hwnd, None)
         if item_id == 1:
             if self.conn_socket == None:
                 if oc.CheckSomeoneOnline(self.ip) == False:
@@ -170,7 +196,6 @@ class image_window:
             except Exception:
                 self.ShowSpeakWindow()
         elif item_id == 2:
-
             self.readCheck=not self.readCheck
         elif item_id == 3:
             try:
@@ -192,6 +217,7 @@ class image_window:
         except Exception:pass
         
     def GetSpeakWindowPos(self):
+        '''control the position of speaking window'''
         x = win32gui.GetWindowRect(self.hwnd)[0]
         y = win32gui.GetWindowRect(self.hwnd)[3]
         return x,y
@@ -199,7 +225,7 @@ class image_window:
     def ShowSpeakWindow(self):
         '''
         show the speaking window.
-        this function does not close it when it's shown.
+        this function does not close it even if it's shown.
         '''
         self.speak_window = tk.Tk()
         self.speak_window.overrideredirect(True)
@@ -220,6 +246,7 @@ class image_window:
         self.SendText()
         
     def GetHistoryWindowPos(self):
+        '''control the position of history window'''
         return win32gui.GetCursorPos()
     
     def GetHistoryString(self):
@@ -244,11 +271,12 @@ class image_window:
         '''
         set self.history_window a tk loop
         '''
+        '''the window'''
         self.history_window = tk.Tk()
         self.history_window.wm_attributes('-toolwindow',True)
         self.history_window.resizable(width=False, height=False)
         self.history_window.title('[%s] %s' % ('HISTORY', self.chat_name))
-        
+        '''the history text'''
         text = tk.Text(self.history_window,
                        exportselection=0,
                        width=self.history_window_width,
@@ -256,13 +284,13 @@ class image_window:
         text.insert(tk.END, self.GetHistoryString())
         text.config(state=tk.DISABLED)
         text.pack(side='left',fill='y')
-        
+        '''create scrollbar'''
         scrollbar = tk.Scrollbar(self.history_window)
         scrollbar.pack(side='right', fill='y')
-        
+        '''enable scrolling'''
         text.config(yscrollcommand=scrollbar.set)
         scrollbar.config(command=text.yview)
-        
+        '''set position and size, and then show it'''
         self.history_window.geometry('+%d+%d' % self.GetHistoryWindowPos())
         self.history_window.mainloop()
     
@@ -292,7 +320,8 @@ class image_window:
         
     def OnPaint(self, hwnd, message, wparam, lparam):
         dc,ps = win32gui.BeginPaint(hwnd)
-        self.Image_list[self.image_index].draw_on_dc(dc, RGB(255,255,255))
+        if len(self.Image_list)>0:
+            self.Image_list[self.image_index].draw_on_dc(dc, RGB(255,255,255))
         win32gui.EndPaint(hwnd, ps)
         return True
     def OnDestroy(self, hwnd, message, wparam, lparam):
@@ -364,15 +393,38 @@ class image_window:
         show a animation with only one action
         '''
         self.showAction(skelFile, False)
-    def OnChatMessageReceived(self, msg):
+    
+    def listen_to_chat_messagesInThread(self):
+        '''
+        pre porcess messages in this function
+        maybe unpack your message here 
+        (if it was packed to ensure the completeness) 
+        '''
+        print('begin  recving')
+        
+        while True:
+            try:
+                msg = self.conn_socket.recv(1000)
+                if msg == b"":
+                    raise Exception()
+            except:
+                print('recv fail')
+                return
+            msg = msg.decode('utf8')
+            '''send the message to next stage .Control the timing here'''
+            self.chatmsg_queue.put(msg)
+            win32gui.SendMessage(self.hwnd, WM_CHATMSGRECV, 0, 0)
+    
+    def OnChatMessageReceived(self, hwnd, win32msg, wp, lp):
         '''
         Called when recv msg
         it's in the main thread, so dealing with gui is safe.
         
         maybe add histroy here
         '''
-        tkmb.showinfo('new message', msg)
-
+        msg = self.chatmsg_queue.get()
+        print('%s: %s'%(self.chat_name,msg))
+    
 def getSkelFile():
     return 'data/skeleton5.txt'
 def func(*args):
