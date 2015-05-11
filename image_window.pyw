@@ -8,9 +8,9 @@ import Image
 import time
 import socket
 import online_check as oc
-
 import tkinter as tk
 import message_transaction as mt
+import tkinter.messagebox as tkmb
 config_file="config"
 history_file="history"
 #execute once
@@ -61,7 +61,10 @@ class image_window:
     allowing multiline message
     preview anime
     '''
-    def __init__(self, after_window_close, ip='127.0.0.1'):
+    def __init__(self, after_window_close, sock, ip, characterFile='data/character1.txt'):
+        '''
+        sock maybe None, indicates the window is not connected currently.
+        '''
         win32gui.InitCommonControls()
         self.hinst = win32api.GetModuleHandle(None)
         self.image_index = 0
@@ -84,8 +87,8 @@ class image_window:
         self.history_window_width = 30 # in character
         self.after = after_window_close
         self.ip = ip
-        self.connected = False
-        self.conn_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.conn_socket = sock
+        self.charFile = characterFile
     def ReadConfig(self):
         with open(config_file) as file:
             for line in file:
@@ -135,6 +138,9 @@ class image_window:
         win32gui.SetWindowPos(self.hwnd, 0, 0, 0, w, h, win32con.SWP_NOMOVE|win32con.SWP_NOOWNERZORDER)
     
     def OnNCCreate(self, hwnd, message, wparam, lparam):
+        '''
+        DO NOT edit things here unless you really know what you're doing
+        '''
         return True
     
     def OnLButtonDown(self, hwnd, message, wparam, lparam):
@@ -153,16 +159,16 @@ class image_window:
         x, y = win32gui.ClientToScreen(hwnd, (x, y))
         item_id = win32gui.TrackPopupMenu(menu, 0x100, x, y, 0, hwnd, None) #0x100 means return item id right after
         if item_id == 1:
-            if self.connected == False:
+            if self.conn_socket == None:
                 if oc.CheckSomeoneOnline(self.ip) == False:
                     print('He is Offline')
                 else:
                     self.conn_socket = mt.StartTalking(self.ip)
-                    try:
-                        turnOffTk(self.speak_window)
-                        self.speak_window = None
-                    except Exception:
-                        self.ShowSpeakWindow()
+            try:
+                turnOffTk(self.speak_window)
+                self.speak_window = None
+            except Exception:
+                self.ShowSpeakWindow()
         elif item_id == 2:
 
             self.readCheck=not self.readCheck
@@ -178,6 +184,10 @@ class image_window:
         return True
     
     def OnMove(self, hwnd, message, wparam, lparam):
+        '''
+        called when window is moved.
+        control things here
+        '''
         try:self.speak_window.geometry('+%d+%d' % self.GetSpeakWindowPos())
         except Exception:pass
         
@@ -187,6 +197,10 @@ class image_window:
         return x,y
     
     def ShowSpeakWindow(self):
+        '''
+        show the speaking window.
+        this function does not close it when it's shown.
+        '''
         self.speak_window = tk.Tk()
         self.speak_window.overrideredirect(True)
         self.speak_window.wm_attributes('-alpha',1,'-disabled',False,'-toolwindow',True, '-topmost', True)
@@ -209,6 +223,10 @@ class image_window:
         return win32gui.GetCursorPos()
     
     def GetHistoryString(self):
+        '''
+        read histroy file and make it pretty
+        return a prettt string for histroy window display
+        '''
         s = ''
         try:
             with open('history') as file:
@@ -223,6 +241,9 @@ class image_window:
         return s
     
     def ShowHistoryWindow(self):
+        '''
+        set self.history_window a tk loop
+        '''
         self.history_window = tk.Tk()
         self.history_window.wm_attributes('-toolwindow',True)
         self.history_window.resizable(width=False, height=False)
@@ -246,6 +267,10 @@ class image_window:
         self.history_window.mainloop()
     
     def SelectAnime(self):
+        '''
+        show anime list for user to choose, or hide it if it was shown.
+        TODO: change name to OnSelectShowAnime.
+        '''
         if hasattr(self, 'anime_lb') and self.anime_lb != None :
             self.anime_lb.destroy()
             self.anime_lb = None
@@ -257,6 +282,9 @@ class image_window:
             self.anime_lb.pack(expand=True, fill='both')
         
     def SendText(self):
+        '''
+        SendText to remote chatter
+        '''
         self.conn_socket.send(self.input_text.get().encode('utf8'))
         self.this_messages.append(self.input_text.get())
         
@@ -268,6 +296,9 @@ class image_window:
         win32gui.EndPaint(hwnd, ps)
         return True
     def OnDestroy(self, hwnd, message, wparam, lparam):
+        '''
+        kill all tk things here
+        '''
         with open(config_file, 'w') as file:
             file.write('readCheck:'+str(self.readCheck))
         with open(history_file, 'a') as file:
@@ -282,8 +313,12 @@ class image_window:
         
         return True
     def getCharFile(self):
-        return 'data/character1.txt'
+        return self.charFile
     def showAction(self, skelFile, acting=True):
+        '''
+        show an action
+        the acting parameter should not be used by public user.
+        '''
         skelData=[]
         charFile = open(skelFile, 'r')   
         for line in charFile.readlines():
@@ -325,8 +360,18 @@ class image_window:
             myThread.setDaemon(True)
             myThread.start()
     def showCharacter(self, skelFile):
+        '''
+        show a animation with only one action
+        '''
         self.showAction(skelFile, False)
-
+    def OnChatMessageReceived(self, msg):
+        '''
+        Called when recv msg
+        it's in the main thread, so dealing with gui is safe.
+        
+        maybe add histroy here
+        '''
+        tkmb.showinfo('new message', msg)
 
 def getSkelFile():
     return 'data/skeleton5.txt'
@@ -337,18 +382,6 @@ def func(*args):
         win.SwitchNextImage()
 
 if __name__ == '__main__':
-    win = image_window(lambda:win32gui.PostQuitMessage(0))
-    win.CreateWindow()
-    #x_size, y_size, charData = getCharacter(getCharFile())
-    win.Resize(150, 150)
-    win.showAction(getSkelFile())
-    
-    myThread = threading.Thread(target=oc.ReceivingOnlineChecks)
-    myThread.setDaemon(True)
-    myThread.start()
-    myThread = threading.Thread(target=mt.ReceivingConnections)
-    myThread.setDaemon(True)
-    myThread.start()
-    
-    win32gui.PumpMessages()
-    print('end')
+    '''
+    test codes are too old, try some new codes.
+    '''

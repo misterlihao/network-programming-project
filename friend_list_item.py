@@ -5,6 +5,7 @@ import win32con, win32gui, win32api
 import struct
 from image_window import image_window, getSkelFile
 import Image
+import message_transaction as mt
 #execute once
 className = "window_list_item"
 wc = win32gui.WNDCLASS()
@@ -19,12 +20,24 @@ wc.cbWndExtra = win32con.DLGWINDOWEXTRA + struct.calcsize("Pi")
 win32gui.RegisterClass(wc)
 
 class Model:
-    def __init__(self, friend_name):
+    '''
+    for data storage
+    '''
+    def __init__(self, friend_name, ip):
         self.friend_name = friend_name
+        self.ip = ip
     
-class View:
-    def __init__(self, parent, _id, friend_name):
-        self.model = Model(friend_name)
+class FriendListItemView:
+    '''
+    window of friend list item
+    '''
+    def __init__(self, parent, _id, friend_name, ip):
+        '''
+        _id is it's win32 id
+        friend_name stores the name of the friend it represents
+        ip is the friend's address
+        '''
+        self.model = Model(friend_name, ip)
         self.id = _id
         self.chat_win = None
         self.hwnd = win32gui.CreateWindow(
@@ -48,6 +61,8 @@ class View:
             win32gui.GetModuleHandle(None),
             None)
     def OnCommand(self, hwnd, msg, wp, lp):
+        '''win32 callback
+        ensure you know what you're doing'''
         print('command ', self.id)
         if (wp>>16)&0xffff == win32con.BN_CLICKED\
             and wp&0xffff == self.id and lp == self.chat_btn:
@@ -55,44 +70,68 @@ class View:
                 if win32gui.IsWindow(self.chat_win.hwnd):
                     win32gui.DestroyWindow(self.chat_win.hwnd)
                 else:
-                    self.StartChat()
+                    raise Exception()
             except :
-                self.StartChat()
+                try:
+                    sock = mt.StartTalking(self.model.ip)
+                    self.StartChat()
+                except:
+                    print(self.model.ip, 'is offline')
+                    self.StartChat()
     
     def OnPaint(self, hwnd, msg, wp, lp):
+        '''win32 callback
+        ensure you know what you're doing'''
         dc, ps = win32gui.BeginPaint(hwnd)
         win32gui.SetBkMode(dc, win32con.TRANSPARENT)
         win32gui.DrawText(dc, self.model.friend_name, -1, (30, 0, 130, 24), win32con.DT_CENTER)
         win32gui.EndPaint(hwnd, ps)
-    def StartChat(self):
+    def StartChat(self, sock=None):
         '''
         Create a image_window here
+        supposed this is just called once before a corresponding win32gui.DestroyWindow
         '''
         win32gui.SetWindowText(self.chat_btn, 'close')
-        self.chat_win = image_window(self.OnChatClosed)
+        self.chat_win = image_window(self.OnChatClosed, sock, self.model.ip)
         self.chat_win.CreateWindow()
-        self.chat_win.Resize(150, 150)
         self.chat_win.showCharacter(getSkelFile())
-        
+    
+    def IsMe(self, ip):
+        '''
+        check if the ip is the friend this window represents
+        '''
+        return ip == self.model.ip
+    
+    def OnChatMessageReceived(self, msg):
+        '''
+        the existence of self.chat_win is supposed
+        '''
+        self.chat_win.OnChatMessageReceived(msg)
     def OnChatClosed(self):
+        '''
+        hand made callback, passed to image_window
+        ensure you know what you're doing'''
         win32gui.SetWindowText(self.chat_btn, 'chat')
         
         self.chat_win = None
         
     def OnDestroy(self, hwnd, msg, wp, lp):
+        '''win32 callback
+        ensure you know what you're doing'''
         return win32gui.DefWindowProc(hwnd, msg, wp, lp)
     
 item_id_acc = 0
-def create(parent, friend_name, x, y, w, h):
+def create(parent, friend_name, ip, x, y, w, h):
     '''
-    return a item window handle, unique id
-    should have a parent, permanent parent is not required
+    return a item window
+    should have a parent at creation moment,
+    but permanent parent is not required
     '''
     global item_id_acc
     item_id = item_id_acc
     item_id_acc += 1
     
-    view = View(parent, item_id, friend_name)
+    view = FriendListItemView(parent, item_id, friend_name,ip)
     win32gui.SetWindowPos(view.hwnd, win32con.HWND_TOP, x, y, w, h, win32con.SWP_NOOWNERZORDER)
     return view
         
