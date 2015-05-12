@@ -98,7 +98,7 @@ class image_window:
         self.history_window_width = 30 # in character
         '''callback function to be execute in ondestroy'''
         self.after = after_window_close
-        '''for socket sonnection'''
+        '''for socket connection'''
         self.ip = ip
         '''the socket , whether connected or not'''
         self.conn_socket = sock
@@ -114,7 +114,8 @@ class image_window:
         if self.conn_socket != None:
             threading.Thread(target=self.listen_to_chat_messagesInThread).start()
             self.connected = True
-        
+        '''for selecting the anime to send'''
+        self.tmp_anime=""        
     def ReadConfig(self):
         with open(config_file) as file:
             for line in file:
@@ -302,18 +303,28 @@ class image_window:
         if hasattr(self, 'anime_lb') and self.anime_lb != None :
             self.anime_lb.destroy()
             self.anime_lb = None
+            self.tmp_anime = ''
         else:
             anime_list = ['anime 1','anime 2']
             self.anime_lb = tk.Listbox(self.speak_window, height = len(anime_list))
+            self.anime_lb.bind("<<ListboxSelect>>", self.OnSelect)
             for i in range(len(anime_list)):
                 self.anime_lb.insert(i+1, anime_list[i])
             self.anime_lb.pack(expand=True, fill='both')
+        
+    def OnSelect(self, event):
+        widget = event.widget
+        selection=widget.curselection()
+        value = widget.get(selection[0])
+        self.tmp_anime = value
+        print ("selection:", selection, ": '%s'" % value)
         
     def SendText(self):
         '''
         SendText to remote chatter
         '''
         self.conn_socket.send(self.input_text.get().encode('utf8'))
+        mt.SendAnime(self.tmp_anime, self.conn_socket)
         self.this_messages.append(self.input_text.get())
         
         self.input_text.delete(0, tk.END)

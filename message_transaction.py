@@ -21,3 +21,9 @@ def ReceivingConnections(*after_accept):
         conn, address = s.accept()
         after_accept[0](conn, address);
     s.close()
+    
+def SendAnime(motion, s):
+     '''
+    only send motion name, translate to skeleton at receive end
+    '''
+     s.send(self.tmp_anime.encode('utf8'))

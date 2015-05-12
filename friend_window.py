@@ -92,7 +92,7 @@ class FriendWin:
         return win32gui.DefWindowProc(hwnd, msg, wp, lp)
     
     def OnConnAcceptInThread(self, sock, addr):
-        '''this is supposted to be called in thread
+        '''this is supposed to be called in thread
         designed to be call back of 
         message_transaction.ReceivingConnections'''
         self.newconn_queue.put((sock, addr))

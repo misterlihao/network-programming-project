@@ -32,6 +32,26 @@ class open_check_online_window():
         except Exception as err:
             tkmb.showerror('Error', err)
         self.co.quit()
+
+class open_jumpout_window():
+    def __init__(self, data, x, y):
+        self.jw = tk.Tk()
+        self.jw.title('No way!')
+        self.jw.resizable(False, False)
+        self.jw.wm_attributes("-toolwindow", 1) 
+        Ok = tk.Button(self.jw,
+                          text=data,
+                          relief = 'flat',
+                          command=self.close_window)
+        Ok.pack(side = 'right', fill = 'both')
+        self.jw.geometry('+%d+%d'% (x,y))
+        self.jw.mainloop()
+        
+    def close_window(self): 
+        self.jw.destroy()
     
 if __name__ == '__main__':
-    open_check_online_window(600, 300)
+    #open_check_online_window(600, 300)
+    open_jumpout_window('He/She is Offline!', 600, 300)
+
+
