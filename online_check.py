@@ -28,7 +28,9 @@ def CheckSomeoneOnline(ip):
     global check_online_type
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
     try:
+        s.settimeout(0.5)
         s.connect((ip, check_online_port))
+        s.settimeout(None)
     except:
         s.close()
         return False

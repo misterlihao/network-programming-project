@@ -186,11 +186,6 @@ class image_window:
         '''show the popup menu, 0x100 means return item id right after'''
         item_id = win32gui.TrackPopupMenu(menu, 0x100, x, y, 0, hwnd, None)
         if item_id == 1:
-            if self.conn_socket == None:
-                if oc.CheckSomeoneOnline(self.ip) == False:
-                    print('He is Offline')
-                else:
-                    self.conn_socket = mt.StartTalking(self.ip)
             try:
                 turnOffTk(self.speak_window)
                 self.speak_window = None
@@ -321,8 +316,14 @@ class image_window:
         
     def SendText(self):
         '''
-        SendText to remote chatter
-        '''
+        SendText to remote chatter'''
+        if self.conn_socket == None:
+            if oc.CheckSomeoneOnline(self.ip) == False:
+                print('He is Offline')
+                return 
+            else:
+                self.conn_socket = mt.StartTalking(self.ip)
+                    
         self.conn_socket.send(self.input_text.get().encode('utf8'))
         mt.SendAnime(self.tmp_anime, self.conn_socket)
         self.this_messages.append(self.input_text.get())
@@ -448,3 +449,6 @@ if __name__ == '__main__':
     '''
     test codes are too old, try some new codes.
     '''
+    win = image_window(lambda:None, '123', None, '111.111.111.111')
+    win.showAction('data/skeleton2.txt')
+    win32gui.PumpMessages()
