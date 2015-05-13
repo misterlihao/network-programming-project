@@ -17,12 +17,19 @@ class FriendList:
         '''
         refresh online status
         '''
+        updated_friends = []
         for each in self.ip_name_status_list:
-            if CheckSomeoneOnline(each[0]) == True:
+            if CheckSomeoneOnline(each[0]) == True\
+                    and each[2] == 'Off':
+                updated_friends.append(self.ip_name_status_list.index(each))
                 each[2] = 'On'
-            elif CheckSomeoneOnline(each[0]) == False:
+            elif CheckSomeoneOnline(each[0]) == False\
+                    and each[2] == 'On':
+                updated_friends.append(self.ip_name_status_list.index(each))
                 each[2] = 'Off'
-
+        
+        return updated_friends
+    
     def AddNewFriend(self,ip, name):
         '''
         '''

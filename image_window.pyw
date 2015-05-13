@@ -12,6 +12,7 @@ import tkinter as tk
 import message_transaction as mt
 import tkinter.messagebox as tkmb
 from WM_APP_MESSAGES import *
+from win32api import RGB
 import queue
 config_file="config"
 history_file="history"
@@ -28,12 +29,6 @@ wc.lpszClassName = className
 wc.cbWndExtra = win32con.DLGWINDOWEXTRA + struct.calcsize("Pi")
 # wc.hIconSm = 0
 win32gui.RegisterClass(wc)
-
-def RGB(r, g, b):
-    r = r & 0xFF
-    g = g & 0xFF
-    b = b & 0xFF
-    return (b << 16) | (g << 8) | r
 
 def getXY(lparam):
     return lparam&0xffff, (lparam>>16)&0xffff

@@ -6,6 +6,10 @@ import struct
 from image_window import image_window, getSkelFile
 import Image
 import message_transaction as mt
+from win32api import RGB
+
+online_indicate_rect = (6,6,16,16)
+oir = online_indicate_rect
 #execute once
 className = "window_list_item"
 wc = win32gui.WNDCLASS()
@@ -26,6 +30,7 @@ class Model:
     def __init__(self, friend_name, ip):
         self.friend_name = friend_name
         self.ip = ip
+        self.online = False
     
 class FriendListItemView:
     '''
@@ -81,13 +86,27 @@ class FriendListItemView:
         dc, ps = win32gui.BeginPaint(hwnd)
         win32gui.SetBkMode(dc, win32con.TRANSPARENT)
         win32gui.DrawText(dc, self.model.friend_name, -1, (30, 0, 130, 24), win32con.DT_CENTER)
+        
+        online = self.model.online
+        if online:
+            brush = win32gui.CreateSolidBrush(RGB(124,193,98))
+            oldb = win32gui.SelectObject(dc, brush)
+        win32gui.Ellipse(dc,oir[0],oir[1],oir[2],oir[3])
+        if online:
+            win32gui.SelectObject(dc, oldb)
+            win32gui.DeleteObject(brush)
+        
         win32gui.EndPaint(hwnd, ps)
     def StartChat(self, sock=None):
         '''
         Create a image_window here
         should be the only entrance of image_window
-        supposed just called once before a corresponding win32gui.DestroyWindow
+        --supposed just called once before a corresponding win32gui.DestroyWindow--
+        above line is not truth anymore
+        restart image_window if called tiwce or more
         '''
+        try:            win32gui.DestroyWindow(self.chat_win.hwnd)
+        except :pass
         win32gui.SetWindowText(self.chat_btn, 'close')
         self.chat_win = image_window(self.OnChatClosed, self.model.friend_name, sock, self.model.ip)
         self.chat_win.showCharacter(getSkelFile())
