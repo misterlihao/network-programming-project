@@ -118,6 +118,8 @@ class FriendWin:
         win32gui.PostQuitMessage(0)
         return True
 
+
+
 import time
 if __name__ == '__main__':
     mainwin = FriendWin()

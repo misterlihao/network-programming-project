@@ -63,7 +63,7 @@ class image_window:
     allowing multiline message
     preview anime
     '''
-    def __init__(self, after_window_close, friend_name, sock, ip, characterFile='data/character1.txt'):
+    def __init__(self, after_window_close, friend_name, sock, ip, characterFile='data/cha/character1/character1.txt'):
         '''
         sock maybe None, indicates the window is not connected currently.
         '''
@@ -360,6 +360,7 @@ class image_window:
         the acting parameter should not be used by public user.
         '''
         skelData=[]
+        print(skelFile)
         charFile = open(skelFile, 'r')   
         for line in charFile.readlines():
             skelData.append(line.split())
@@ -437,7 +438,7 @@ class image_window:
         print('%s: %s'%(self.chat_name,msg))
     
 def getSkelFile():
-    return 'data/skeleton5.txt'
+    return 'data/cha/character1/skeleton/skeleton6.txt'
 def func(*args):
     win,= args
     while True:
@@ -448,3 +449,4 @@ if __name__ == '__main__':
     '''
     test codes are too old, try some new codes.
     '''
+
