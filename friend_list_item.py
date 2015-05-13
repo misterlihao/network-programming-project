@@ -73,12 +73,7 @@ class FriendListItemView:
                 else:
                     raise Exception()
             except :
-                try:
-                    sock = mt.StartTalking(self.model.ip)
-                    self.StartChat(sock)
-                except:
-                    print(self.model.ip, 'is offline')
-                    self.StartChat()
+                self.StartChat()
     
     def OnPaint(self, hwnd, msg, wp, lp):
         '''win32 callback
