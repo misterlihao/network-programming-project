@@ -12,6 +12,20 @@ class FriendList:
         with open(self.file_name, 'w') as file:
             for each in self.ip_name_status_list:
                 file.write(each[0]+':'+each[1])
+    
+    def ChangeFriendName(self, friend_name, new_name):
+        for list in self.ip_name_status_list:
+            if (list[1]==friend_name):
+                list[1] = new_name;
+                print("changed name to %s" % new_name)      
+                break;
+    
+    def ChangeFriendIp(self, friend_name, new_ip):
+        for list in self.ip_name_status_list:
+            if (list[1]==friend_name):
+                list[0] = new_ip;
+                print("changed ip to %s" % new_ip)
+                break;
         
     def RefreshOnlineStatus(self):
         '''

@@ -12,7 +12,6 @@ import message_transaction as mt
 import queue
 from WM_APP_MESSAGES import *
 
-
 class FriendWin:
     '''
     the main window
@@ -42,7 +41,7 @@ class FriendWin:
         for i in range(len(self.friend_list)):
             name = self.friend_list[i][1]
             ip = self.friend_list[i][0]
-            fli = FLI.create(self.hwnd, name, ip, 0, 24*i, rect[2], 24)
+            fli = FLI.create(self, self.hwnd, name, ip, 0, 24*i, rect[2], 24)
             self.friend_list_item_list.append(fli)
         
         win32gui.ShowWindow(self.hwnd, win32con.SW_NORMAL)
@@ -131,9 +130,15 @@ class FriendWin:
             friend_list_item = self.friend_list_item_list[index]
             friend_list_item.model.online = not friend_list_item.model.online
             win32gui.InvalidateRect(friend_list_item.hwnd, (FLI.online_indicate_rect),True)
-    
+        
     def OnDestroy(self, hwnd, msg, wp, lp):
         win32gui.PostQuitMessage(0)
+        print(self.friend_list_item_list)
+        for each in self.friend_list_item_list:
+            try:
+                each.edit_window.destroy()
+                each.edit_window.quit()
+            except:pass
         return True
 
 
