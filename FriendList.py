@@ -6,12 +6,14 @@ class FriendList:
         with open(self.file_name) as file:
             for line in file:
                 ip, name = line.split(':')
+                if name[-1]=='\n':
+                    name = name[:-1]
                 self.ip_name_status_list.append([ip, name, 'Off'])#default to offline
                 
     def Save(self):
         with open(self.file_name, 'w') as file:
             for each in self.ip_name_status_list:
-                file.write(each[0]+':'+each[1])
+                file.write(each[0]+':'+each[1]+'\n')
     
     def ChangeFriendName(self, friend_name, new_name):
         for list in self.ip_name_status_list:

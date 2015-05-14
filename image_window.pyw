@@ -313,12 +313,10 @@ class image_window:
         '''
         SendText to remote chatter'''
         if self.conn_socket == None:
-            if oc.CheckSomeoneOnline(self.ip) == False:
-                print('He is Offline')
+            self.conn_socket = mt.StartTalking(self.ip)
+            if self.conn_socket == None:
                 return 
-            else:
-                self.conn_socket = mt.StartTalking(self.ip)
-                    
+        
         self.conn_socket.send(self.input_text.get().encode('utf8'))
         mt.SendAnime(self.tmp_anime, self.conn_socket)
         self.this_messages.append(self.input_text.get())
