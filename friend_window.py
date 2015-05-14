@@ -2,7 +2,7 @@
 @author: misterlihao
 This is supposed to be main window
 '''
-import friend_list_item
+import friend_list_item as FLI
 import win32gui, win32api, win32con
 import struct
 from FriendList import FriendList
@@ -11,7 +11,6 @@ import online_check as oc
 import message_transaction as mt
 import queue
 from WM_APP_MESSAGES import *
-
 
 class FriendWin:
     '''
@@ -25,6 +24,7 @@ class FriendWin:
           win32con.WM_DESTROY: self.OnDestroy,
           win32con.WM_SYSCOMMAND: self.OnSysCommand,
           WM_CONNACCEPTED: self.OnConnAccepted,
+          WM_FRIENDREFRESHED: self.OnFriendRefreshed,
         }
         cn = self.RegisterClass()
         self.BuildWindow(cn)
@@ -41,7 +41,7 @@ class FriendWin:
         for i in range(len(self.friend_list)):
             name = self.friend_list[i][1]
             ip = self.friend_list[i][0]
-            fli = friend_list_item.create(self.hwnd, name, ip, 0, 24*i, rect[2], 24)
+            fli = FLI.create(self, name, ip, 0, 24*i, rect[2], 24)
             self.friend_list_item_list.append(fli)
         
         win32gui.ShowWindow(self.hwnd, win32con.SW_NORMAL)
@@ -51,6 +51,10 @@ class FriendWin:
         myThread.start()
         '''begin accepting connections to chat''' 
         myThread = threading.Thread(target=mt.ReceivingConnections, args=(self.OnConnAcceptInThread,))
+        myThread.setDaemon(True)
+        myThread.start()
+        '''begin refreshing online status'''
+        myThread = threading.Thread(target=self.RefreashFriendStatusInThread)
         myThread.setDaemon(True)
         myThread.start()
         
@@ -114,8 +118,28 @@ class FriendWin:
         print('user', friend_list_item.model.friend_name, 'connected at', addr)
         friend_list_item.StartChat(sock)
     
+    def RefreashFriendStatusInThread(self):
+        while True:
+            time.sleep(1)
+            self.updated_friends = self.friend_list.RefreshOnlineStatus()
+            if len(self.updated_friends) > 0:
+                win32gui.SendMessage(self.hwnd, WM_FRIENDREFRESHED, 0, 0)
+    
+    def OnFriendRefreshed(self, hwnd, msg, wp, lp):    
+        for index in self.updated_friends:
+            friend_list_item = self.friend_list_item_list[index]
+            friend_list_item.model.online = not friend_list_item.model.online
+            win32gui.InvalidateRect(friend_list_item.hwnd, (FLI.online_indicate_rect),True)
+        
     def OnDestroy(self, hwnd, msg, wp, lp):
         win32gui.PostQuitMessage(0)
+        print(self.friend_list_item_list)
+        for each in self.friend_list_item_list:
+            try:
+                each.edit_window.destroy()
+                each.edit_window.quit()
+            except:pass
+        self.friend_list.Save()
         return True
 
 
