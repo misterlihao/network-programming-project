@@ -115,7 +115,6 @@ class FriendListItemView:
         except :pass
         win32gui.SetWindowText(self.chat_btn, 'close')
         self.chat_win = image_window(self.OnChatClosed, self.model.friend_name, sock, self.model.ip)
-        self.chat_win.showCharacter(getSkelFile())
     
     def IsMe(self, ip):
         '''

@@ -11,7 +11,7 @@ import online_check as oc
 import message_transaction as mt
 import queue
 from WM_APP_MESSAGES import *
-
+import check_online_window as COW
 class FriendWin:
     '''
     the main window
@@ -23,6 +23,7 @@ class FriendWin:
         self.message_map = {
           win32con.WM_DESTROY: self.OnDestroy,
           win32con.WM_SYSCOMMAND: self.OnSysCommand,
+          win32con.WM_COMMAND: self.OnCommand,
           WM_CONNACCEPTED: self.OnConnAccepted,
           WM_FRIENDREFRESHED: self.OnFriendRefreshed,
         }
@@ -81,6 +82,16 @@ class FriendWin:
                              win32con.CW_USEDEFAULT,
                              win32con.CW_USEDEFAULT,
                              w,h,0,0,self.hinst,None)
+        self.menubar = win32gui.CreateMenu()
+        win32gui.AppendMenu(self.menubar, win32con.MF_STRING, 1, 'search ip')
+        win32gui.SetMenu(self.hwnd, self.menubar)
+    
+    def OnCommand(self, hwnd, msg, wp, lp):
+        if win32api.HIWORD(wp) == 0: #menu command
+            menu_id = win32api.LOWORD(wp)
+            if menu_id == 1:
+                point = win32gui.GetCursorPos()
+                COW.open_check_online_window(point[0], point[1])
         
     def OnSysCommand(self, hwnd, msg, wp, lp):
         '''win32 callback, edit to control
@@ -140,6 +151,7 @@ class FriendWin:
                 each.edit_window.quit()
             except:pass
         self.friend_list.Save()
+        win32gui.DestroyMenu(self.menubar)
         return True
 
 

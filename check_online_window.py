@@ -31,6 +31,7 @@ class open_check_online_window():
                 tkmb.showinfo('online check', ip+'is offline')
         except Exception as err:
             tkmb.showerror('Error', err)
+        self.co.destroy()
         self.co.quit()
 
 class open_jumpout_window():
@@ -49,6 +50,7 @@ class open_jumpout_window():
         
     def close_window(self): 
         self.jw.destroy()
+        self.jw.quit()
     
 if __name__ == '__main__':
     #open_check_online_window(600, 300)
