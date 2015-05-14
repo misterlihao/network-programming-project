@@ -9,6 +9,8 @@ def StartTalking(ip):
         s.connect((ip, 12347))
     except:
         print('Connect socket fail.')
+        return None
+    
     s.settimeout(None)
     return s
 

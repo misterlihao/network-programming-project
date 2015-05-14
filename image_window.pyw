@@ -113,14 +113,15 @@ class image_window:
         '''thread must be correctly terminated in some time (eg: ondestroy)
             and socket must be terminate and released in some time, too'''
         if self.conn_socket != None:
-            if not(checkCharVersion()):
+
+            if not self.checkCharVersion():
                 self.conn_socket.send('True'.encode('utf8'))
-                updateCharacter()
+                self.updateCharacter()
             else:
                 self.conn_socket.send('False'.encode('utf8'))
             data = self.conn_socket.recv(8192)
             if bool(data):
-                uploadCharacter()
+                self.uploadCharacter()
                 
             threading.Thread(target=self.listen_to_chat_messagesInThread).start()
             self.connected = True
@@ -331,20 +332,19 @@ class image_window:
         '''
         SendText to remote chatter'''
         if self.conn_socket == None:
-            if oc.CheckSomeoneOnline(self.ip) == False:
-                print('He is Offline')
+            self.conn_socket = mt.StartTalking(self.ip)
+            if self.conn_socket == None:
                 return 
+             
+            if not self.checkCharVersion():
+                self.conn_socket.send('True'.encode('utf8'))
+                self.updateCharacter()
             else:
-                self.conn_socket = mt.StartTalking(self.ip)
-                
-                if not(checkCharVersion()):
-                    self.conn_socket.send('True'.encode('utf8'))
-                    updateCharacter()
-                else:
-                    self.conn_socket.send('False'.encode('utf8'))
-                data = self.conn_socket.recv(8192)
-                if bool(data):
-                    uploadCharacter()
+                self.conn_socket.send('False'.encode('utf8'))
+            data = self.conn_socket.recv(8192)
+            if bool(data):
+                self.uploadCharacter()
+
         
         self.conn_socket.send(self.input_text.get().encode('utf8'))
         mt.SendAnime(self.tmp_anime, self.conn_socket)
@@ -478,7 +478,7 @@ class image_window:
         text = str(self.getCharDataSize(self.getParentDirectory(self.myCharFile)))
         self.conn_socket.send(text.encode('utf8'))
         data = self.conn_socket.recv(8192)
-        if cmpCharVersion(self.getCharDataSize(self.getParentDirectory(self.charFile)), int(data)):
+        if self.cmpCharVersion(self.getCharDataSize(self.getParentDirectory(self.charFile)), int(data)):
             return True
         return False
 
