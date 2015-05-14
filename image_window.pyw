@@ -32,8 +32,6 @@ wc.cbWndExtra = win32con.DLGWINDOWEXTRA + struct.calcsize("Pi")
 # wc.hIconSm = 0
 win32gui.RegisterClass(wc)
 
-archiveName = 'charData.zip'
-
 def getXY(lparam):
     return lparam&0xffff, (lparam>>16)&0xffff
 
@@ -62,7 +60,7 @@ class image_window:
     allowing multiline message
     preview anime
     '''
-    def __init__(self, after_window_close, friend_name, sock, ip, characterFile='data\cha\character1\character1.txt'):
+    def __init__(self, after_window_close, friend_name, sock, ip, characterFile='data/cha/character1/character1.txt'):
         '''
         sock maybe None, indicates the window is not connected currently.
         '''
@@ -102,7 +100,7 @@ class image_window:
         '''the socket , whether connected or not'''
         self.conn_socket = sock
         ''''my character file (path of bitmaps)'''
-        self.myCharFile = ''
+        self.myCharFile = 'data/cha/character1/character1.txt'
         '''the character file (path of bitmaps)'''
         self.charFile = characterFile
         '''if the socket is connected, not validated already'''
@@ -135,8 +133,7 @@ class image_window:
                 if cap[0] == 'readCheck':
                     self.readCheck=bool(cap[1]=='True')
                 elif cap[0] == 'myCharFile':
-                    self.myCharFile = cap[1]              
-        file.close()
+                    self.myCharFile = cap[1]
                 
         
     def BuildWindow(self, className):
@@ -462,9 +459,22 @@ class image_window:
         print('%s: %s'%(self.chat_name,msg))
 
     def getParentDirectory(self, path):
-        return os.path.abspath(os.path.join(path, os.pardir))
-        return os.path.join(path, os.pardir)
-    
+        #return os.path.abspath(os.path.join(path, os.pardir))
+        path2 = path.split('/')
+        temp=''
+        for ph in path2:
+            if(len(ph)>4 and (ph[len(ph)-4:] == '.txt')):
+                break
+            temp = os.path.join(temp, ph)         
+        return temp
+
+    def getArchiveName(self, path):
+        path2 = path.split('/')
+        for ph in path2:
+            if(len(ph)>4 and (ph[len(ph)-4:] == '.txt')):
+                return ph[:len(ph)-4]+'.zip'
+        return 'ArchiveName.zip'
+                
     def cmpCharVersion(self, myDataSize = 0, hisDataSize = 0):
         if myDataSize == hisDataSize:
             return True
@@ -484,25 +494,43 @@ class image_window:
 
     def updateCharacter(self):
         print('update Character ...')
-        self.conn_socket.send()
+        fileName = self.getArchiveName(self.charFile)
+        with open(sfileName, 'wb') as cfile:
+            while True:
+                data = self.conn_socket.recv(4096)
+                if data == 'EOF':
+                    print('recv file success!')
+                    break
+                cfile.write(data)
+
+        zf = zipfile.ZipFile(fileName)
+        zf.extractall()
+        zf.close()
+        os.remove(fileName)
         
     def uploadCharacter(self):
         print('upload Character ...')
-        print(self.getParentDirectory(self.myCharFile))
-        archiveName = 'charData.zip'
-        zf = zipfile.ZipFile(archiveName,'w',zipfile.ZIP_DEFLATED)
+        sfileName = self.getArchiveName(self.myCharFile)
+        zf = zipfile.ZipFile(sfileName,'w',zipfile.ZIP_DEFLATED)
         for dirPath, dirNames, fileNames in os.walk(self.getParentDirectory(self.myCharFile)):
             for fileName in fileNames:
                 file = os.path.join(dirPath, fileName)
                 zf.write(file)
-
-        zf.close() 
-            
-
+        zf.close()
+        with open(sfileName, 'rb') as file:
+            while True:
+                data = file.read(4096)
+                if not data:
+                    break
+                self.conn_socket.send(data)
+                
+        self.conn_socket.send('EOF')
+        print('send success!')
+        os.remove(sfileName)
         
     
 def getSkelFile():
-    return 'data\cha\character1\skeleton\skeleton6.txt'
+    return 'data/cha/character1/skeleton/skeleton6.txt'
 def func(*args):
     win,= args
     while True:
@@ -516,8 +544,8 @@ if __name__ == '__main__':
 
     win = image_window(lambda:None, '123', None, '111.111.111.111')
     win.showAction('data/cha/character1/skeleton/skeleton6.txt')
-    win.uploadCharacter()
-    print('uploadCharacter done')
+    #win.uploadCharacter()
+    #print('uploadCharacter done')
     win32gui.PumpMessages()
 
  
