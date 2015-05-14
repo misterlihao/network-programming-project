@@ -528,7 +528,7 @@ class image_window:
         with open(sfileName, 'wb') as cfile:
             while True:
                 data = self.conn_socket.recv(4096)
-                if data == 'EOF':
+                if data == b'EOF':
                     print('recv file success!')
                     break
                 cfile.write(data)
@@ -554,7 +554,7 @@ class image_window:
                     break
                 self.conn_socket.send(data)
                 
-        self.conn_socket.send('EOF')
+        self.conn_socket.send(b'EOF')
         print('send success!')
         os.remove(sfileName)
         
