@@ -139,6 +139,7 @@ class FriendWin:
                 each.edit_window.destroy()
                 each.edit_window.quit()
             except:pass
+        self.friend_list.Save()
         return True
 
 

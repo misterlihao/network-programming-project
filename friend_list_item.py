@@ -165,8 +165,6 @@ class FriendListItemView:
         frame = tk.Frame(self.edit_window)
         self.input_text = tk.Entry(frame)
         self.input_text.pack(side='left',expand=True, fill='both')
-        '''for pressing Enter to return'''
-        self.input_text.bind('<Return>', func=self.InputTextHitReturn)
         '''default on change name'''
         self.SwitchToInputName()
         change_btn = tk.Button(frame, text='change', comman=self.CommitChange)
@@ -177,11 +175,8 @@ class FriendListItemView:
         name_btn.pack(side='right')
         frame.pack()
         
-        self.edit_window.geometry('+%d+%d' % self.GetSpeakWindowPos())
+        self.edit_window.geometry('+%d+%d' % self.GetEditWindowPos())
         self.edit_window.mainloop()
-        
-    def InputTextHitReturn(self, event):
-        self.SendText()
         
     def SwitchToInputName(self):
         '''
@@ -212,8 +207,9 @@ class FriendListItemView:
             self.model.friend_name = self.input_text.get()
             self.input_text.delete(0, tk.END)
             self.input_text.insert(0, 'friend\'s name changed!')
-    
-    def GetSpeakWindowPos(self):
+        win32gui.InvalidateRect(self.hwnd, None, True)
+        
+    def GetEditWindowPos(self):
         '''control the position of edit window'''
         x = win32gui.GetWindowRect(self.hwnd)[0]
         y = win32gui.GetWindowRect(self.hwnd)[3]
