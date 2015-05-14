@@ -102,7 +102,7 @@ class image_window:
         '''the socket , whether connected or not'''
         self.conn_socket = sock
         ''''my character file (path of bitmaps)'''
-        self.myCharFile
+        self.myCharFile = ''
         '''the character file (path of bitmaps)'''
         self.charFile = characterFile
         '''if the socket is connected, not validated already'''
@@ -113,7 +113,7 @@ class image_window:
         '''thread must be correctly terminated in some time (eg: ondestroy)
             and socket must be terminate and released in some time, too'''
         if self.conn_socket != None:
-            if ~checkCharVersion():
+            if not(checkCharVersion()):
                 self.conn_socket.send('True'.encode('utf8'))
                 updateCharacter()
             else:
@@ -337,7 +337,7 @@ class image_window:
             else:
                 self.conn_socket = mt.StartTalking(self.ip)
                 
-                if ~checkCharVersion():
+                if not(checkCharVersion()):
                     self.conn_socket.send('True'.encode('utf8'))
                     updateCharacter()
                 else:
