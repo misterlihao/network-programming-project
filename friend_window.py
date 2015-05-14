@@ -150,10 +150,7 @@ if __name__ == '__main__':
     
     '''play as a remote user to test recving functions'''
     def test(*args):
-        time.sleep(1)
-        sock = mt.StartTalking('127.0.0.1')
-        sock.send('123'.encode('utf8'))
-        sock.send('456'.encode('utf8'))
+        pass
         
     th=threading.Thread(target=test)
     th.setDaemon(True)
