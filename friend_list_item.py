@@ -40,7 +40,7 @@ class FriendListItemView:
     '''
     window of friend list item
     '''
-    def __init__(self, friend_window_class, parent, _id, friend_name, ip):
+    def __init__(self, friend_window_class, _id, friend_name, ip):
         '''
         _id is it's win32 id
         friend_name stores the name of the friend it represents
@@ -52,7 +52,7 @@ class FriendListItemView:
         self.hwnd = win32gui.CreateWindow(
             "window_list_item","",
             win32con.WS_VISIBLE|win32con.WS_CHILD,
-            0, 0, 0, 0, parent, _id,
+            0, 0, 0, 0, friend_window_class.hwnd, _id,
             win32gui.GetModuleHandle(None),
             None)
         
@@ -220,7 +220,7 @@ class FriendListItemView:
         return x,y
     
 item_id_acc = 0
-def create(friend_window_class, parent, friend_name, ip, x, y, w, h):
+def create(friend_window_class, friend_name, ip, x, y, w, h):
     '''
     return a item window
     should have a parent at creation moment,
@@ -230,7 +230,7 @@ def create(friend_window_class, parent, friend_name, ip, x, y, w, h):
     item_id = item_id_acc
     item_id_acc += 1
     
-    view = FriendListItemView(friend_window_class, parent, item_id, friend_name,ip)
+    view = FriendListItemView(friend_window_class, item_id, friend_name,ip)
     win32gui.SetWindowPos(view.hwnd, win32con.HWND_TOP, x, y, w, h, win32con.SWP_NOOWNERZORDER)
     return view
         
