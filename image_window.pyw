@@ -122,20 +122,23 @@ class image_window:
         self.showAction(self.getActionPath('idle.txt'))
         
         if self.conn_socket != None:
-
-            if not self.checkCharVersion():
-                self.conn_socket.send('True'.encode('utf8'))
-                self.updateCharacter()
-            else:
-                self.conn_socket.send('False'.encode('utf8'))
-            data = self.conn_socket.recv(8192)
-            if bool(data):
-                self.uploadCharacter()
-                
-            threading.Thread(target=self.listen_to_chat_messagesInThread).start()
-            self.connected = True
+            self.DoAfterConnectEstablished()
         '''for selecting the anime to send'''
-        self.tmp_anime=""        
+        self.tmp_anime=""      
+        
+    def DoAfterConnectEstablished(self):  
+        if not self.checkCharVersion():
+            self.conn_socket.send('True'.encode('utf8'))
+            self.updateCharacter()
+        else:
+            self.conn_socket.send('False'.encode('utf8'))
+        data = self.conn_socket.recv(8192)
+        if bool(data):
+            self.uploadCharacter()
+            
+        threading.Thread(target=self.listen_to_chat_messagesInThread).start()
+        self.connected = True
+        
     def ReadConfig(self):
         with open(config_file) as file:
             for line in file:
@@ -198,19 +201,23 @@ class image_window:
         return True
     
     def OnLButtonUp(self, hwnd, message, wparam, lparam):
-        print("lb up")
+        if self.drag_showing == False:
+            self.showAction(self.getActionPath('click.txt'))
+        else:
+            self.showAction(self.getActionPath('idle.txt'))
         self.dragging = False
         self.drag_showing = False
-        self.showAction(self.getActionPath('idle.txt'))
         return True
     def OnMouseMove(self, hwnd, message, wparam, lparam):
         if self.dragging :
-            if not self.drag_showing:
-                self.drag_showing = True
-                self.showAction(self.getActionPath('drag.txt'))
             cur_x, cur_y = win32gui.ClientToScreen(self.hwnd, (win32api.LOWORD(lparam), win32api.HIWORD(lparam))) 
             dx = cur_x-self.drag_point[0]
             dy = cur_y-self.drag_point[1]
+            if dx == 0 and dy == 0:
+                return True
+            if not self.drag_showing:
+                self.drag_showing = True
+                self.showAction(self.getActionPath('drag.txt'))
             x,y = self.drag_pre_pos
             win32gui.SetWindowPos(self.hwnd, 0, x+dx, y+dy, 0, 0, win32con.SWP_NOSIZE|win32con.SWP_NOOWNERZORDER)
         return True
@@ -363,16 +370,7 @@ class image_window:
             self.conn_socket = mt.StartTalking(self.ip)
             if self.conn_socket == None:
                 return 
-             
-            if not self.checkCharVersion():
-                self.conn_socket.send('True'.encode('utf8'))
-                self.updateCharacter()
-            else:
-                self.conn_socket.send('False'.encode('utf8'))
-            data = self.conn_socket.recv(8192)
-            if bool(data):
-                self.uploadCharacter()
-
+            self.DoAfterConnectEstablished() 
         
         self.conn_socket.send(self.input_text.get().encode('utf8'))
         mt.SendAnime(self.tmp_anime, self.conn_socket)
