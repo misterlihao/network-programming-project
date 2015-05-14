@@ -30,10 +30,11 @@ def CheckSomeoneOnline(ip):
     try:
         s.settimeout(0.5)
         s.connect((ip, check_online_port))
-        s.settimeout(None)
     except:
         s.close()
         return False
-    
+    finally:
+        s.settimeout(None)
+        
     s.close()
     return True

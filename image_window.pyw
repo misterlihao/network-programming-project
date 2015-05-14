@@ -75,9 +75,11 @@ class image_window:
         self.message_map = {
           win32con.WM_DESTROY: self.OnDestroy,
           win32con.WM_LBUTTONDOWN: self.OnLButtonDown,
+          win32con.WM_LBUTTONUP: self.OnLButtonUp,
+          win32con.WM_MOVE: self.OnMove,
+          win32con.WM_MOUSEMOVE: self.OnMouseMove,
           win32con.WM_PAINT: self.OnPaint,
           win32con.WM_RBUTTONUP: self.OnRButtonUp,
-          win32con.WM_MOVE: self.OnMove,
           WM_CHATMSGRECV: self.OnChatMessageReceived,
         }
         '''create the window '''
@@ -90,6 +92,10 @@ class image_window:
         except Exception: 
             self.readCheck=False
             print('no config file')  
+        
+        self.acting = False
+        self.drag_showing = False
+        self.dragging = False
         '''history'''
         self.this_messages=[]
         '''for display'''
@@ -112,6 +118,9 @@ class image_window:
         self.chatmsg_queue = queue.Queue()
         '''thread must be correctly terminated in some time (eg: ondestroy)
             and socket must be terminate and released in some time, too'''
+        
+        self.showAction(self.getActionPath('idle.txt'))
+        
         if self.conn_socket != None:
             if not self.checkCharVersion():
                 self.conn_socket.send('True'.encode('utf8'))
@@ -137,7 +146,6 @@ class image_window:
                     self.myCharFile = cap[1]              
         file.close()
                 
-        
     def BuildWindow(self, className):
         style = win32con.WS_POPUP|win32con.WS_VISIBLE
         xstyle = win32con.WS_EX_LAYERED
@@ -183,9 +191,28 @@ class image_window:
         return True
     
     def OnLButtonDown(self, hwnd, message, wparam, lparam):
-        win32api.SendMessage(hwnd, win32con.WM_NCLBUTTONDOWN, 2, lparam)
+        self.dragging = True
+        self.drag_point = win32gui.ClientToScreen(self.hwnd, (win32api.LOWORD(lparam), win32api.HIWORD(lparam)))
+        self.drag_pre_pos =  win32gui.ClientToScreen(self.hwnd, (0,0))
         return True
     
+    def OnLButtonUp(self, hwnd, message, wparam, lparam):
+        print("lb up")
+        self.dragging = False
+        self.drag_showing = False
+        self.showAction(self.getActionPath('idle.txt'))
+        return True
+    def OnMouseMove(self, hwnd, message, wparam, lparam):
+        if self.dragging :
+            if not self.drag_showing:
+                self.drag_showing = True
+                self.showAction(self.getActionPath('drag.txt'))
+            cur_x, cur_y = win32gui.ClientToScreen(self.hwnd, (win32api.LOWORD(lparam), win32api.HIWORD(lparam))) 
+            dx = cur_x-self.drag_point[0]
+            dy = cur_y-self.drag_point[1]
+            x,y = self.drag_pre_pos
+            win32gui.SetWindowPos(self.hwnd, 0, x+dx, y+dy, 0, 0, win32con.SWP_NOSIZE|win32con.SWP_NOOWNERZORDER)
+        return True
     def OnRButtonUp(self, hwnd, message, wparam, lparam):
         menu = win32gui.CreatePopupMenu()
         win32gui.AppendMenu(menu, win32con.MF_STRING, 1, 'speak')
@@ -224,6 +251,7 @@ class image_window:
         '''
         try:self.speak_window.geometry('+%d+%d' % self.GetSpeakWindowPos())
         except Exception:pass
+        return win32gui.DefWindowProc(hwnd, message, wparam, lparam)
         
     def GetSpeakWindowPos(self):
         '''control the position of speaking window'''
@@ -420,9 +448,13 @@ class image_window:
             
         self.SetImages(img)
         if acting:
-            myThread = threading.Thread(target = func, args=(self,))
-            myThread.setDaemon(True)
-            myThread.start()
+            if not self.acting:
+                self.acting = True
+                myThread = threading.Thread(target = func, args=(self,))
+                myThread.setDaemon(True)
+                myThread.start()
+        else:
+            self.acting = False
     def showCharacter(self, skelFile):
         '''
         show a animation with only one action
@@ -497,8 +529,8 @@ class image_window:
 
         zf.close() 
             
-
-        
+    def getActionPath(self, action_filename):
+        return 'data\\cha\\character1\\skeleton\\'+action_filename;
     
 def getSkelFile():
     return 'data\cha\character1\skeleton\skeleton6.txt'
