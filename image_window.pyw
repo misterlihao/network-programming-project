@@ -468,7 +468,8 @@ class image_window:
 
     def getParentDirectory(self, path):
         return os.path.abspath(os.path.join(path, os.pardir))
-        
+        return os.path.join(path, os.pardir)
+    
     def cmpCharVersion(self, myDataSize = 0, hisDataSize = 0):
         if myDataSize == hisDataSize:
             return True
@@ -492,7 +493,7 @@ class image_window:
         
     def uploadCharacter(self):
         print('upload Character ...')
-        print(self.myCharFile)
+        print(self.getParentDirectory(self.myCharFile))
         archiveName = 'charData.zip'
         zf = zipfile.ZipFile(archiveName,'w',zipfile.ZIP_DEFLATED)
         for dirPath, dirNames, fileNames in os.walk(self.getParentDirectory(self.myCharFile)):
