@@ -122,6 +122,7 @@ class image_window:
         self.showAction(self.getActionPath('idle.txt'))
         
         if self.conn_socket != None:
+
             if not self.checkCharVersion():
                 self.conn_socket.send('True'.encode('utf8'))
                 self.updateCharacter()
@@ -362,8 +363,7 @@ class image_window:
             self.conn_socket = mt.StartTalking(self.ip)
             if self.conn_socket == None:
                 return 
-            self.conn_socket = mt.StartTalking(self.ip)
-            
+             
             if not self.checkCharVersion():
                 self.conn_socket.send('True'.encode('utf8'))
                 self.updateCharacter()
@@ -372,6 +372,7 @@ class image_window:
             data = self.conn_socket.recv(8192)
             if bool(data):
                 self.uploadCharacter()
+
         
         self.conn_socket.send(self.input_text.get().encode('utf8'))
         mt.SendAnime(self.tmp_anime, self.conn_socket)
