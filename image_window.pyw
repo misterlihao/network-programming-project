@@ -1,4 +1,6 @@
 # example1.py
+import os
+import zipfile
 import struct
 import win32api
 import win32con
@@ -28,6 +30,8 @@ wc.lpszClassName = className
 wc.cbWndExtra = win32con.DLGWINDOWEXTRA + struct.calcsize("Pi")
 # wc.hIconSm = 0
 win32gui.RegisterClass(wc)
+
+archiveName = 'charData.zip'
 
 def RGB(r, g, b):
     r = r & 0xFF
@@ -63,7 +67,7 @@ class image_window:
     allowing multiline message
     preview anime
     '''
-    def __init__(self, after_window_close, friend_name, sock, ip, characterFile='data/cha/character1/character1.txt'):
+    def __init__(self, after_window_close, friend_name, sock, ip, characterFile='data\cha\character1\character1.txt'):
         '''
         sock maybe None, indicates the window is not connected currently.
         '''
@@ -102,6 +106,8 @@ class image_window:
         self.ip = ip
         '''the socket , whether connected or not'''
         self.conn_socket = sock
+        ''''my character file (path of bitmaps)'''
+        self.myCharFile
         '''the character file (path of bitmaps)'''
         self.charFile = characterFile
         '''if the socket is connected, not validated already'''
@@ -112,6 +118,15 @@ class image_window:
         '''thread must be correctly terminated in some time (eg: ondestroy)
             and socket must be terminate and released in some time, too'''
         if self.conn_socket != None:
+            if ~checkCharVersion():
+                self.conn_socket.send('True'.encode('utf8'))
+                updateCharacter()
+            else:
+                self.conn_socket.send('False'.encode('utf8'))
+            data = self.conn_socket.recv(8192)
+            if bool(data):
+                uploadCharacter()
+                
             threading.Thread(target=self.listen_to_chat_messagesInThread).start()
             self.connected = True
         '''for selecting the anime to send'''
@@ -123,7 +138,10 @@ class image_window:
                 print(cap)
                 if cap[0] == 'readCheck':
                     self.readCheck=bool(cap[1]=='True')
-                    break
+                elif cap[0] == 'myCharFile':
+                    self.myCharFile = cap[1]              
+        file.close()
+                
         
     def BuildWindow(self, className):
         style = win32con.WS_POPUP|win32con.WS_VISIBLE
@@ -323,7 +341,16 @@ class image_window:
                 return 
             else:
                 self.conn_socket = mt.StartTalking(self.ip)
-                    
+                
+                if ~checkCharVersion():
+                    self.conn_socket.send('True'.encode('utf8'))
+                    updateCharacter()
+                else:
+                    self.conn_socket.send('False'.encode('utf8'))
+                data = self.conn_socket.recv(8192)
+                if bool(data):
+                    uploadCharacter()
+        
         self.conn_socket.send(self.input_text.get().encode('utf8'))
         mt.SendAnime(self.tmp_anime, self.conn_socket)
         self.this_messages.append(self.input_text.get())
@@ -342,6 +369,7 @@ class image_window:
         '''
         with open(config_file, 'w') as file:
             file.write('readCheck:'+str(self.readCheck))
+            file.write('myCharFile:'+str(self.myCharFile))
         with open(history_file, 'a') as file:
             for each in self.this_messages:
                 file.write(each+'\n')
@@ -437,9 +465,48 @@ class image_window:
         '''
         msg = self.chatmsg_queue.get()
         print('%s: %s'%(self.chat_name,msg))
+
+    def getParentDirectory(self, path):
+        return os.path.abspath(os.path.join(path, os.pardir))
+        
+    def cmpCharVersion(self, myDataSize = 0, hisDataSize = 0):
+        if myDataSize == hisDataSize:
+            return True
+        return False
+    
+    def getCharDataSize(self, charDirectory):
+        return os.path.getsize(charDirectory)
+
+    def checkCharVersion(self):
+        print('check Character ...')
+        text = str(self.getCharDataSize(self.getParentDirectory(self.myCharFile)))
+        self.conn_socket.send(text.encode('utf8'))
+        data = self.conn_socket.recv(8192)
+        if cmpCharVersion(self.getCharDataSize(self.getParentDirectory(self.charFile)), int(data)):
+            return True
+        return False
+
+    def updateCharacter(self):
+        print('update Character ...')
+        self.conn_socket.send()
+        
+    def uploadCharacter(self):
+        print('upload Character ...')
+        print(self.myCharFile)
+        archiveName = 'charData.zip'
+        zf = zipfile.ZipFile(archiveName,'w',zipfile.ZIP_DEFLATED)
+        for dirPath, dirNames, fileNames in os.walk(self.getParentDirectory(self.myCharFile)):
+            for fileName in fileNames:
+                file = os.path.join(dirPath, fileName)
+                zf.write(file)
+
+        zf.close() 
+            
+
+        
     
 def getSkelFile():
-    return 'data/cha/character1/skeleton/skeleton6.txt'
+    return 'data\cha\character1\skeleton\skeleton6.txt'
 def func(*args):
     win,= args
     while True:
@@ -453,5 +520,9 @@ if __name__ == '__main__':
 
     win = image_window(lambda:None, '123', None, '111.111.111.111')
     win.showAction('data/cha/character1/skeleton/skeleton6.txt')
+    win.uploadCharacter()
+    print('uploadCharacter done')
     win32gui.PumpMessages()
+
+ 
 
