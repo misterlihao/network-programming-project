@@ -196,7 +196,7 @@ class FriendListItemView:
     def CommitChange(self):
         if (self.input_mode==1):
             '''self.model.ip still have old name'''
-            self.friend_window_class.friend_list.ChangeFriendIp(self.model.ip, self.input_text.get())
+            self.friend_window_class.friend_list.ChangeFriendIp(self.model.friend_name, self.input_text.get())
             self.model.ip = self.input_text.get()
             self.input_text.delete(0, tk.END)
             self.input_text.insert(0, 'friend\'s ip changed!')
