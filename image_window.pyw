@@ -60,7 +60,7 @@ class image_window:
     allowing multiline message
     preview anime
     '''
-    def __init__(self, after_window_close, friend_name, sock, ip, characterFile='data/cha/character1/character1.txt'):
+    def __init__(self, after_window_close, friend_name, sock, ip, characterFile='data/cha/1/character1.txt'):
         '''
         sock maybe None, indicates the window is not connected currently.
         '''
@@ -511,7 +511,12 @@ class image_window:
         return False
     
     def getCharDataSize(self, charDirectory):
-        return os.path.getsize(charDirectory)
+        temp = 0
+        for dirPath, dirNames, fileNames in os.walk('charDirectory'):
+            for fileName in fileNames:
+                file = os.path.join(dirPath, fileName)
+                temp += os.path.getsize(file)
+                return temp
 
     def checkCharVersion(self):
         print('check Character ...')
@@ -524,8 +529,8 @@ class image_window:
 
     def updateCharacter(self):
         print('update Character ...')
-        fileName = self.getArchiveName(self.charFile)
-        with open(sfileName, 'wb') as cfile:
+        fileName = self.conn_socket.recv(4096).decode('utf8')
+        with open(fileName, 'wb') as cfile:
             while True:
                 data = self.conn_socket.recv(4096)
                 if data == b'EOF':
@@ -533,20 +538,24 @@ class image_window:
                     break
                 cfile.write(data)
 
+        win32gui.ShowWindow(self.hwnd, 0)
+        os.system('rd /S /Q ' + self.getParentDirectory(self.charFile))
         zf = zipfile.ZipFile(fileName)
-        zf.extractall()
+        zf.extractall(self.getParentDirectory(self.charFile))
         zf.close()
+        win32gui.ShowWindow(self.hwnd, 1)
         os.remove(fileName)
         
     def uploadCharacter(self):
         print('upload Character ...')
         sfileName = self.getArchiveName(self.myCharFile)
         zf = zipfile.ZipFile(sfileName,'w',zipfile.ZIP_DEFLATED)
-        for dirPath, dirNames, fileNames in os.walk(self.getParentDirectory(self.myCharFile)):
+        for dirPath, dirNames, fileNames in os.walk(sfileName):
             for fileName in fileNames:
                 file = os.path.join(dirPath, fileName)
-                zf.write(file)
+                zf.write(file, file[len(sfileName)+1:])
         zf.close()
+        self.conn_socket.send(sfileName.encode('utf8'))
         with open(sfileName, 'rb') as file:
             while True:
                 data = file.read(4096)
@@ -560,7 +569,8 @@ class image_window:
         
             
     def getActionPath(self, action_filename):
-        return 'data\\cha\\character1\\skeleton\\'+action_filename;
+        path = self.getParentDirectory(self.charFile)
+        return path + '/skeleton/'+action_filename
 
     
 def getSkelFile():
@@ -577,9 +587,9 @@ if __name__ == '__main__':
     '''
 
     win = image_window(lambda:None, '123', None, '111.111.111.111')
-    win.showAction('data/cha/character1/skeleton/send.txt')
-    #win.uploadCharacter()
-    #print('uploadCharacter done')
+    win.showAction('data/cha/character1/skeleton/idle.txt')
+    win.uploadCharacter()
+    print('uploadCharacter done')
     win32gui.PumpMessages()
 
  
