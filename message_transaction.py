@@ -17,7 +17,7 @@ def StartTalking(ip):
 def ReceivingConnections(*after_accept):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR, 1)  
-    s.bind(('25.145.157.125', 12347))  
+    s.bind(('', 12347))  
     s.listen(20)
     while(1):
         conn, address = s.accept()
