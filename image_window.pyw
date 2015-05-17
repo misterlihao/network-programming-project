@@ -471,6 +471,7 @@ class image_window:
         if acting:
             self.acting = True
             self.actionThread = ChangeImageThread(self, repeating)
+            self.actionThread.setDaemon(True)
             self.actionThread.start()
         else:
             self.acting = False
