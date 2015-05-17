@@ -130,7 +130,7 @@ class image_window:
         else:
             self.conn_socket.send('False'.encode('utf8'))
         data = self.conn_socket.recv(8192)
-        if bool(data):
+        if bool(data=='True'):
             self.uploadCharacter()
             
         threading.Thread(target=self.listen_to_chat_messagesInThread).start()
