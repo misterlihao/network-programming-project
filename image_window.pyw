@@ -197,6 +197,7 @@ class image_window:
         self.dragging = True
         self.drag_point = win32gui.ClientToScreen(self.hwnd, (win32api.LOWORD(lparam), win32api.HIWORD(lparam)))
         self.drag_pre_pos =  win32gui.ClientToScreen(self.hwnd, (0,0))
+        win32gui.SetCapture(hwnd)
         return True
     
     def OnLButtonUp(self, hwnd, message, wparam, lparam):
@@ -206,6 +207,7 @@ class image_window:
             self.showAction(self.getActionPath('idle.txt'))
         self.dragging = False
         self.drag_showing = False
+        win32gui.ReleaseCapture()
         return True
     def OnMouseMove(self, hwnd, message, wparam, lparam):
         if self.dragging :
@@ -224,7 +226,7 @@ class image_window:
             cur_x, cur_y = win32gui.ClientToScreen(self.hwnd, (win32api.LOWORD(lparam), win32api.HIWORD(lparam))) 
             dx = cur_x-self.drag_point[0]
             dy = cur_y-self.drag_point[1]
-            if abs(dx)+abs(dy) < 4:
+            if abs(dx)+abs(dy) < 1:
                 return True
             self.drag_point = (cur_x, cur_y)
             if not self.drag_showing:
@@ -233,7 +235,6 @@ class image_window:
             rect = win32gui.GetWindowRect(self.hwnd)
             x, y = rect[0], rect[1]
             
-            print('drag')
             win32gui.SetWindowPos(self.hwnd, 0, x+dx, y+dy, 0, 0, win32con.SWP_NOSIZE|win32con.SWP_NOOWNERZORDER)
         return True
     def OnRButtonUp(self, hwnd, message, wparam, lparam):
