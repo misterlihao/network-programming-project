@@ -59,7 +59,7 @@ class image_window:
     allowing multiline message
     preview anime
     '''
-    def __init__(self, after_window_close, friend_name, sock, ip, characterFile='data/cha/1/character1.txt'):
+    def __init__(self, after_window_close, friend_name, sock, ip, characterFile):
         '''
         sock maybe None, indicates the window is not connected currently.
         '''
@@ -166,6 +166,10 @@ class image_window:
         win32gui.SetLayeredWindowAttributes(self.hwnd, RGB(255,255,255),0,win32con.LWA_COLORKEY)
     def SetImages(self, Image_list):
         '''private purpose, for showing action implementation'''
+        try:
+            for image in self.Image_list:
+                image.release_img()
+        except:pass
         self.Image_list = Image_list
         self.image_index = -1
     
@@ -623,8 +627,9 @@ if __name__ == '__main__':
     test codes are too old, try some new codes.
     '''
 
-    win = image_window(lambda:None, '123', None, '111.111.111.111')
-    win.showAction('data/cha/1/skeleton/send.txt')
+    win = image_window(lambda:None, '123', None, '111.111.111.111', 'data/cha/character1/character1.txt')
+    for i in range(10000):
+        win.showAction('data/cha/1/skeleton/send.txt')
     #win.uploadCharacter()
     print('uploadCharacter done')
     win32gui.PumpMessages()

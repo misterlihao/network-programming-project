@@ -40,7 +40,7 @@ class FriendListItemView:
     '''
     window of friend list item
     '''
-    def __init__(self, friend_window_class, _id, friend_name, ip):
+    def __init__(self, friend_window_class, _id, friend_name, ip, friend_id):
         '''
         _id is it's win32 id
         friend_name stores the name of the friend it represents
@@ -49,6 +49,7 @@ class FriendListItemView:
         self.model = Model(friend_name, ip)
         self.id = _id
         self.chat_win = None
+        self.friend_id = friend_id
         self.hwnd = win32gui.CreateWindow(
             "window_list_item","",
             win32con.WS_VISIBLE|win32con.WS_CHILD,
@@ -111,10 +112,18 @@ class FriendListItemView:
         above line is not truth anymore
         restart image_window if called tiwce or more
         '''
-        try:            win32gui.DestroyWindow(self.chat_win.hwnd)
+        try:win32gui.DestroyWindow(self.chat_win.hwnd)
         except :pass
         win32gui.SetWindowText(self.chat_btn, 'close')
-        self.chat_win = image_window(self.OnChatClosed, self.model.friend_name, sock, self.model.ip)
+        self.chat_win = image_window(
+            self.OnChatClosed, 
+            self.model.friend_name, 
+            sock, 
+            self.model.ip, 
+            self.getCharPath(self.friend_id))
+    
+    def getCharPath(self, id):
+        return 'data/cha/'+id+'/character1.txt'
     
     def IsMe(self, ip):
         '''
@@ -215,7 +224,7 @@ class FriendListItemView:
         return x,y
     
 item_id_acc = 0
-def create(friend_window_class, friend_name, ip, x, y, w, h):
+def create(friend_window_class, friend_name, ip, friend_id, x, y, w, h):
     '''
     return a item window
     should have a parent at creation moment,
@@ -225,7 +234,7 @@ def create(friend_window_class, friend_name, ip, x, y, w, h):
     item_id = item_id_acc
     item_id_acc += 1
     
-    view = FriendListItemView(friend_window_class, item_id, friend_name,ip)
+    view = FriendListItemView(friend_window_class, item_id, friend_name,ip, friend_id)
     win32gui.SetWindowPos(view.hwnd, win32con.HWND_TOP, x, y, w, h, win32con.SWP_NOOWNERZORDER)
     return view
         

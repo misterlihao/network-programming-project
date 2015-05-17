@@ -42,7 +42,8 @@ class FriendWin:
         for i in range(len(self.friend_list)):
             name = self.friend_list[i][1]
             ip = self.friend_list[i][0]
-            fli = FLI.create(self, name, ip, 0, 24*i, rect[2], 24)
+            friend_id = self.friend_list[i][3]
+            fli = FLI.create(self, name, ip, friend_id, 0, 24*i, rect[2], 24)
             self.friend_list_item_list.append(fli)
         
         win32gui.ShowWindow(self.hwnd, win32con.SW_NORMAL)

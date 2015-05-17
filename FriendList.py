@@ -3,17 +3,20 @@ class FriendList:
     def __init__(self, file_name):
         self.file_name = file_name
         self.ip_name_status_list = []
+        self.id_max = 0
         with open(self.file_name) as file:
             for line in file:
-                ip, name = line.split(':')
-                if name[-1]=='\n':
-                    name = name[:-1]
-                self.ip_name_status_list.append([ip, name, 'Off'])#default to offline
+                if line[-1]=='\n':
+                    line = line[:-1]
+                ip, name,id = line.split(':')
+                self.ip_name_status_list.append([ip, name, 'Off', id])#default to offline
+                if int(self.id_max) < int(id):
+                    self.id_max = id
                 
     def Save(self):
         with open(self.file_name, 'w') as file:
             for each in self.ip_name_status_list:
-                file.write(each[0]+':'+each[1]+'\n')
+                file.write('%s:%s:%s\n'%(each[0],each[1],each[3]))
     
     def ChangeFriendName(self, friend_name, new_name):
         for list in self.ip_name_status_list:
@@ -49,8 +52,8 @@ class FriendList:
     def AddNewFriend(self,ip, name):
         '''
         '''
-        self.ip_name_status_list.append([ip, name, 'Off'])
-        
+        self.ip_name_status_list.append([ip, name, 'Off', self.id_max+1])
+        self.id_max += 1
         pass
     
     def __len__(self):
@@ -61,7 +64,7 @@ class FriendList:
         
     def __iter__(self):
         '''
-        iteration of [ip, name, status]
+        iteration of [ip, name, status, id]
         '''
         for item in self.ip_name_status_list:
             yield item

@@ -27,3 +27,7 @@ class Image(object):
             src_h = pybmp.bmHeight
             win32gui.TransparentBlt(dst_dc, x, y, w, h, mdc, 0, 0, src_w, src_h, mask_color)
         win32gui.DeleteDC(mdc)
+    def release_img(self):
+        for bmp, x,y,w,h in self.components:
+            win32gui.DeleteObject(bmp)
+        self.components = None
