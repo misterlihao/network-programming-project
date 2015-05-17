@@ -628,8 +628,7 @@ if __name__ == '__main__':
     '''
 
     win = image_window(lambda:None, '123', None, '111.111.111.111', 'data/cha/character1/character1.txt')
-    for i in range(10000):
-        win.showAction('data/cha/1/skeleton/send.txt')
+    win.showAction('data/cha/1/skeleton/send.txt')
     #win.uploadCharacter()
     print('uploadCharacter done')
     win32gui.PumpMessages()
