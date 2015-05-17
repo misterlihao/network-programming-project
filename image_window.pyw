@@ -42,11 +42,10 @@ def turnOffTk(tk_object):
 def getCharacter(fileName):
     charFile = open(fileName, 'r')
     charData=[]
-    length, height = charFile.readline().split()
     for line in charFile.readlines():       
         charData.append(line.split())
     charFile.close()
-    return int(length), int(height), charData
+    return charData
 
 class image_window:
     '''
@@ -117,7 +116,7 @@ class image_window:
         '''thread must be correctly terminated in some time (eg: ondestroy)
             and socket must be terminate and released in some time, too'''
         
-        self.showAction(self.getActionPath('idle.txt'))
+        self.showAction(self.getActionPath('idle.txt'), True)
         
         if self.conn_socket != None:
             self.DoAfterConnectEstablished()
@@ -168,7 +167,7 @@ class image_window:
     def SetImages(self, Image_list):
         '''private purpose, for showing action implementation'''
         self.Image_list = Image_list
-        self.image_index = 0
+        self.image_index = -1
     
     def SwitchNextImage(self):
         '''private purpose, for showing action implementation
@@ -177,6 +176,9 @@ class image_window:
         
         #redrawing
         win32gui.InvalidateRect(self.hwnd, None, True)
+    
+    def GetCurrentImageRemainTime(self):
+        return self.image_remain_times[self.image_index]
     
     def GoOnTop(self):
         win32gui.SetWindowPos(self.hwnd, win32con.HWND_TOP, 0, 0, 0, 0, win32con.SWP_NOMOVE|win32con.SWP_NOSIZE)
@@ -207,6 +209,7 @@ class image_window:
         return True
     def OnMouseMove(self, hwnd, message, wparam, lparam):
         if self.dragging :
+            '''old, laggy, working method...
             cur_x, cur_y = win32gui.ClientToScreen(self.hwnd, (win32api.LOWORD(lparam), win32api.HIWORD(lparam))) 
             dx = cur_x-self.drag_point[0]
             dy = cur_y-self.drag_point[1]
@@ -214,8 +217,23 @@ class image_window:
                 return True
             if not self.drag_showing:
                 self.drag_showing = True
-                self.showAction(self.getActionPath('drag.txt'))
-            x,y = self.drag_pre_pos
+                self.showAction(self.getActionPath('drag.txt'), True)
+            x,y = self.drag_pre_pos'''
+            
+            '''not tested method'''
+            cur_x, cur_y = win32gui.ClientToScreen(self.hwnd, (win32api.LOWORD(lparam), win32api.HIWORD(lparam))) 
+            dx = cur_x-self.drag_point[0]
+            dy = cur_y-self.drag_point[1]
+            if abs(dx)+abs(dy) < 4:
+                return True
+            self.drag_point = (cur_x, cur_y)
+            if not self.drag_showing:
+                self.drag_showing = True
+                self.showAction(self.getActionPath('drag.txt'), True)
+            rect = win32gui.GetWindowRect(self.hwnd)
+            x, y = rect[0], rect[1]
+            
+            print('drag')
             win32gui.SetWindowPos(self.hwnd, 0, x+dx, y+dy, 0, 0, win32con.SWP_NOSIZE|win32con.SWP_NOOWNERZORDER)
         return True
     def OnRButtonUp(self, hwnd, message, wparam, lparam):
@@ -374,6 +392,7 @@ class image_window:
         self.this_messages.append(self.input_text.get())
         
         self.input_text.delete(0, tk.END)
+        self.showAction(self.getActionPath('send.txt'))
         
     def OnPaint(self, hwnd, message, wparam, lparam):
         dc,ps = win32gui.BeginPaint(hwnd)
@@ -401,7 +420,7 @@ class image_window:
         return True
     def getCharFile(self):
         return self.charFile
-    def showAction(self, skelFile, acting=True):
+    def showAction(self, skelFile, repeating = False, acting=True):
         '''
         show an action
         the acting parameter should not be used by public user.
@@ -413,7 +432,13 @@ class image_window:
             skelData.append(line.split())
         charFile.close()    
         
-        x_size, y_size, charData = getCharacter(self.getCharFile())
+        self.image_remain_times = []
+        with open(skelFile+'.config') as file:
+            x_size, y_size = [int(v) for v in file.readline().split()]
+            for line in file:
+                self.image_remain_times.append(float(line))
+        
+        charData = getCharacter(self.getCharFile())
         self.Resize(x_size, y_size)
         charData = sorted(charData,key= lambda temp:int(temp[2]))
         img=[]
@@ -441,16 +466,14 @@ class image_window:
                 hbmp2 = win32gui.LoadImage(0, skinTemp, win32gui.IMAGE_BITMAP, 0, 0,win32gui.LR_LOADFROMFILE)
                 imgTemp.append_component(hbmp2, int(temp[0]), int(temp[1]), int(temp[2]), int(temp[3]))
             img.append(imgTemp)
-            
         self.SetImages(img)
         if acting:
-            if not self.acting:
-                self.acting = True
-                myThread = threading.Thread(target = func, args=(self,))
-                myThread.setDaemon(True)
-                myThread.start()
+            self.acting = True
+            self.actionThread = ChangeImageThread(self, repeating)
+            self.actionThread.start()
         else:
             self.acting = False
+            self.actionThread = None
     def showCharacter(self, skelFile):
         '''
         show a animation with only one action
@@ -574,21 +597,33 @@ class image_window:
 
     
 def getSkelFile():
-    return 'data/cha/character1/skeleton/skeleton6.txt'
-def func(*args):
-    win,= args
-    while True:
-        time.sleep(0.15)
-        win.SwitchNextImage()
+    return 'data/cha/1/skeleton/skeleton6.txt'
 
+class ChangeImageThread(threading.Thread):
+    def __init__(self, win, repeating):
+        self.win = win
+        self.only_once = not repeating
+        self.started = False
+        super(ChangeImageThread, self).__init__()
+        
+    def run(self):
+        while self.win.actionThread == self:
+            self.win.SwitchNextImage()
+            if self.only_once and self.win.image_index == 0:
+                if self.started:
+                    self.win.showAction(self.win.getActionPath('idle.txt'), True)
+                self.started = True
+            time.sleep(self.win.GetCurrentImageRemainTime())
+        self.win = None
+        
 if __name__ == '__main__':
     '''
     test codes are too old, try some new codes.
     '''
 
     win = image_window(lambda:None, '123', None, '111.111.111.111')
-    win.showAction('data/cha/character1/skeleton/idle.txt')
-    win.uploadCharacter()
+    win.showAction('data/cha/1/skeleton/send.txt')
+    #win.uploadCharacter()
     print('uploadCharacter done')
     win32gui.PumpMessages()
 
