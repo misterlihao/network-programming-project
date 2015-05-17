@@ -154,8 +154,6 @@ class FriendWin:
         win32gui.DestroyMenu(self.menubar)
         return True
 
-
-
 import time
 if __name__ == '__main__':
     mainwin = FriendWin()
