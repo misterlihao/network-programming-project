@@ -613,13 +613,15 @@ class ChangeImageThread(threading.Thread):
         super(ChangeImageThread, self).__init__()
         
     def run(self):
-        while self.win.actionThread is self:
-            self.win.SwitchNextImage()
-            if self.only_once and self.win.image_index == 0:
-                if self.started:
-                    self.win.showAction(self.win.getActionPath('idle.txt'), True)
-                self.started = True
-            time.sleep(self.win.GetCurrentImageRemainTime())
+        try:
+            while self.win.actionThread is self:
+                self.win.SwitchNextImage()
+                if self.only_once and self.win.image_index == 0:
+                    if self.started:
+                        self.win.showAction(self.win.getActionPath('idle.txt'), True)
+                    self.started = True
+                time.sleep(self.win.GetCurrentImageRemainTime())
+        except:pass
         self.win = None
         
 if __name__ == '__main__':
