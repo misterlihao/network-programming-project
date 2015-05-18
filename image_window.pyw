@@ -534,15 +534,6 @@ class image_window:
                 break
             temp = os.path.join(temp, ph)         
         return temp
-
-    def getArchiveName(self, path):
-        '''
-        path2 = path.split('/')
-        for ph in path2:
-            if(len(ph)>4 and (ph[len(ph)-4:] == '.txt')):
-                return ph[:len(ph)-4]+'.zip'
-                '''
-        return 'ArchiveName.zip'
                 
     def cmpCharVersion(self, myDataSize = 0, hisDataSize = 0):
         print('mysize:'+str(myDataSize))
@@ -591,12 +582,13 @@ class image_window:
         
     def uploadCharacter(self):
         print('upload Character ...')
-        sfileName = self.getArchiveName(self.myCharFile)
+        sfileName = 'ArchiveName.zip'
         zf = zipfile.ZipFile(sfileName,'w',zipfile.ZIP_DEFLATED)
-        for dirPath, dirNames, fileNames in os.walk(sfileName):
+        parentDir = self.getParentDirectory(self.charFile)
+        for dirPath, dirNames, fileNames in os.walk(parentDir):
             for fileName in fileNames:
                 file = os.path.join(dirPath, fileName)
-                zf.write(file, file[len(sfileName)+1:])
+                zf.write(file, file[len(parentDir)+1:])
         zf.close()
         #self.conn_socket.send(sfileName.encode('utf8'))
         with open(sfileName, 'rb') as file:
@@ -608,7 +600,7 @@ class image_window:
                 
         self.conn_socket.send(b'EOF')
         print('send success!')
-        os.remove(sfileName)
+        #os.remove(sfileName)
         
             
     def getActionPath(self, action_filename):
