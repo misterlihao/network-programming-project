@@ -59,7 +59,7 @@ class image_window:
     allowing multiline message
     preview anime
     '''
-    def __init__(self, after_window_close, friend_name, sock, ip, characterFile):
+    def __init__(self, after_window_close, friend_name, sock, ip, characterFile, id):
         '''
         sock maybe None, indicates the window is not connected currently.
         '''
@@ -68,6 +68,7 @@ class image_window:
         '''for show action easy to draw'''
         self.image_index = 0
         '''for show action easy to draw'''
+        self.friendID = id
         self.Image_list = []
         self.message_map = {
           win32con.WM_DESTROY: self.OnDestroy,
@@ -126,12 +127,15 @@ class image_window:
     def DoAfterConnectEstablished(self):  
         if not self.checkCharVersion():
             self.conn_socket.send('True'.encode('utf8'))
+            data = self.conn_socket.recv(8192)
+            if bool(data=='True'):
+                self.uploadCharacter()
             self.updateCharacter()
         else:
             self.conn_socket.send('False'.encode('utf8'))
-        data = self.conn_socket.recv(8192)
-        if bool(data=='True'):
-            self.uploadCharacter()
+            data = self.conn_socket.recv(8192)
+            if bool(data=='True'):
+                self.uploadCharacter()
             
         thread = threading.Thread(target=self.listen_to_chat_messagesInThread)
         thread.setDaemon(True)
@@ -510,7 +514,7 @@ class image_window:
             '''send the message to next stage .Control the timing here'''
             self.chatmsg_queue.put(msg)
             win32gui.SendMessage(self.hwnd, WM_CHATMSGRECV, 0, 0)
-    
+            
     def OnChatMessageReceived(self, hwnd, win32msg, wp, lp):
         '''
         Called when recv msg
@@ -532,10 +536,12 @@ class image_window:
         return temp
 
     def getArchiveName(self, path):
+        '''
         path2 = path.split('/')
         for ph in path2:
             if(len(ph)>4 and (ph[len(ph)-4:] == '.txt')):
                 return ph[:len(ph)-4]+'.zip'
+                '''
         return 'ArchiveName.zip'
                 
     def cmpCharVersion(self, myDataSize = 0, hisDataSize = 0):
@@ -564,7 +570,8 @@ class image_window:
 
     def updateCharacter(self):
         print('update Character ...')
-        fileName = self.conn_socket.recv(4096).decode('utf8')
+        #fileName = self.conn_socket.recv(4096).decode('utf8')
+        fileName = self.friendID+'.zip'
         with open(fileName, 'wb') as cfile:
             while True:
                 data = self.conn_socket.recv(4096)
@@ -591,7 +598,7 @@ class image_window:
                 file = os.path.join(dirPath, fileName)
                 zf.write(file, file[len(sfileName)+1:])
         zf.close()
-        self.conn_socket.send(sfileName.encode('utf8'))
+        #self.conn_socket.send(sfileName.encode('utf8'))
         with open(sfileName, 'rb') as file:
             while True:
                 data = file.read(4096)

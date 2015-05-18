@@ -120,7 +120,8 @@ class FriendListItemView:
             self.model.friend_name, 
             sock, 
             self.model.ip, 
-            self.getCharPath(self.friend_id))
+            self.getCharPath(self.friend_id)
+            ,self.friend_id)
     
     def getCharPath(self, id):
         return 'data/cha/'+id+'/character1.txt'
