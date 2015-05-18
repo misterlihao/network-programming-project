@@ -619,7 +619,7 @@ class ChangeImageThread(threading.Thread):
     def run(self):
         try:
             while self.win.actionThread is self:
-                print('switch image')
+                #print('switch image')
                 self.win.SwitchNextImage()
                 if self.only_once and self.win.image_index == 0:
                     if self.started:
