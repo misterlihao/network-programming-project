@@ -28,4 +28,4 @@ def SendAnime(motion, s):
      '''
     only send motion name, translate to skeleton at receive end
     '''
-     s.send(self.tmp_anime.encode('utf8'))
+     s.send(motion.encode('utf8'))
