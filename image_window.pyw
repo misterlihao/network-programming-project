@@ -535,6 +535,8 @@ class image_window:
         return 'ArchiveName.zip'
                 
     def cmpCharVersion(self, myDataSize = 0, hisDataSize = 0):
+        print('mysize:'+str(myDataSize))
+        print('hissize:'+str(hisDataSize))
         if myDataSize == hisDataSize:
             return True
         return False
@@ -545,7 +547,7 @@ class image_window:
             for fileName in fileNames:
                 file = os.path.join(dirPath, fileName)
                 temp += os.path.getsize(file)
-                return temp
+        return temp
 
     def checkCharVersion(self):
         print('check Character ...')
@@ -571,6 +573,7 @@ class image_window:
         os.system('rd /S /Q ' + self.getParentDirectory(self.charFile))
         zf = zipfile.ZipFile(fileName)
         zf.extractall(self.getParentDirectory(self.charFile))
+        print('update success')
         zf.close()
         win32gui.ShowWindow(self.hwnd, 1)
         os.remove(fileName)
