@@ -541,7 +541,7 @@ class image_window:
     
     def getCharDataSize(self, charDirectory):
         temp = 0
-        for dirPath, dirNames, fileNames in os.walk('charDirectory'):
+        for dirPath, dirNames, fileNames in os.walk(charDirectory):
             for fileName in fileNames:
                 file = os.path.join(dirPath, fileName)
                 temp += os.path.getsize(file)
@@ -551,7 +551,7 @@ class image_window:
         print('check Character ...')
         text = str(self.getCharDataSize(self.getParentDirectory(self.myCharFile)))
         self.conn_socket.send(text.encode('utf8'))
-        data = self.conn_socket.recv(8192)
+        data = self.conn_socket.recv(8192).decode('utf8')
         if self.cmpCharVersion(self.getCharDataSize(self.getParentDirectory(self.charFile)), int(data)):
             return True
         return False
