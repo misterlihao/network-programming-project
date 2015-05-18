@@ -144,16 +144,19 @@ class FriendWin:
             win32gui.InvalidateRect(friend_list_item.hwnd, (FLI.online_indicate_rect),True)
         
     def OnDestroy(self, hwnd, msg, wp, lp):
-        win32gui.PostQuitMessage(0)
-        print(self.friend_list_item_list)
         for each in self.friend_list_item_list:
+            try:
+                win32gui.DestroyWindow(each.hwnd)
+            except:pass
             try:
                 each.edit_window.destroy()
                 each.edit_window.quit()
             except:pass
         self.friend_list.Save()
         win32gui.DestroyMenu(self.menubar)
-        return True
+        win32gui.PostQuitMessage(0)
+        return win32gui.DefWindowProc(hwnd, msg, wp, lp)
+    
 
 import time
 if __name__ == '__main__':

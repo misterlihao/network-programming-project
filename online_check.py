@@ -16,7 +16,7 @@ def ReceivingOnlineChecks():
     while(1):
         conn, address = s.accept()
         try:
-            print('Checked from:', address)
+            pass#print('Checked from:', address)
         except:
             print('EXEXEX')
         conn.close()

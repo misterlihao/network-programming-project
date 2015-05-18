@@ -143,6 +143,9 @@ class FriendListItemView:
     def OnDestroy(self, hwnd, msg, wp, lp):
         '''win32 callback
         ensure you know what you're doing'''
+        print('fli ondestroy')
+        try:win32gui.DestroyWindow(self.chat_win.hwnd)
+        except:pass
         return win32gui.DefWindowProc(hwnd, msg, wp, lp)
     
     def OnRButtonUp(self, hwnd, message, wparam, lparam):

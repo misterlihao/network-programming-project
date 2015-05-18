@@ -37,7 +37,7 @@ def getXY(lparam):
 
 def turnOffTk(tk_object):
     tk_object.destroy()
-    tk_object.quit()
+    #tk_object.quit()
 
 def getCharacter(fileName):
     charFile = open(fileName, 'r')
@@ -133,7 +133,9 @@ class image_window:
         if bool(data=='True'):
             self.uploadCharacter()
             
-        threading.Thread(target=self.listen_to_chat_messagesInThread).start()
+        thread = threading.Thread(target=self.listen_to_chat_messagesInThread)
+        thread.setDaemon(True)
+        thread.start()
         self.connected = True
         
     def ReadConfig(self):
@@ -417,11 +419,13 @@ class image_window:
                 file.write(each+'\n')
        
         try:turnOffTk(self.speak_window)
-        except Exception:pass
+        except :pass
         try:turnOffTk(self.history_window)
-        except Exception:pass
+        except :pass
         self.after()
         
+        self.actionThread = None
+        print('image_window on destroy')
         return True
     def getCharFile(self):
         return self.charFile
@@ -618,6 +622,7 @@ class ChangeImageThread(threading.Thread):
     def run(self):
         try:
             while self.win.actionThread is self:
+                #print('switch image')
                 self.win.SwitchNextImage()
                 if self.only_once and self.win.image_index == 0:
                     if self.started:
@@ -632,7 +637,7 @@ if __name__ == '__main__':
     test codes are too old, try some new codes.
     '''
 
-    win = image_window(lambda:None, '123', None, '111.111.111.111', 'data/cha/character1/character1.txt')
+    win = image_window(lambda:win32gui.PostQuitMessage(0), '123', None, '111.111.111.111', 'data/cha/character1/character1.txt')
     win.showAction('data/cha/1/skeleton/send.txt')
     #win.uploadCharacter()
     print('uploadCharacter done')
