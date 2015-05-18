@@ -127,14 +127,14 @@ class image_window:
     def DoAfterConnectEstablished(self):  
         if not self.checkCharVersion():
             self.conn_socket.send('True'.encode('utf8'))
-            data = self.conn_socket.recv(8192)
+            data = self.conn_socket.recv(8192).decode()
             if bool(data=='True'):
                 self.uploadCharacter()
             self.updateCharacter()
         else:
             self.conn_socket.send('False'.encode('utf8'))
-            data = self.conn_socket.recv(8192)
-            if bool(data=='True'):
+            data = self.conn_socket.recv(8192).decode()
+            if data == 'True':
                 self.uploadCharacter()
             
         thread = threading.Thread(target=self.listen_to_chat_messagesInThread)
@@ -536,7 +536,7 @@ class image_window:
         return temp
                 
     def cmpCharVersion(self, myDataSize = 0, hisDataSize = 0):
-        print('mysize:'+str(myDataSize))
+        print('myfriendsize:'+str(myDataSize))
         print('hissize:'+str(hisDataSize))
         if myDataSize == hisDataSize:
             return True
@@ -553,10 +553,13 @@ class image_window:
     def checkCharVersion(self):
         print('check Character ...')
         text = str(self.getCharDataSize(self.getParentDirectory(self.myCharFile)))
+        print('character1=' + text)
         self.conn_socket.send(text.encode('utf8'))
         data = self.conn_socket.recv(8192).decode('utf8')
         if self.cmpCharVersion(self.getCharDataSize(self.getParentDirectory(self.charFile)), int(data)):
+            #print('cmpCharVersion is T')
             return True
+        #print('cmpCharVersion is F')
         return False
 
     def updateCharacter(self):
@@ -584,10 +587,12 @@ class image_window:
         print('upload Character ...')
         sfileName = 'ArchiveName.zip'
         zf = zipfile.ZipFile(sfileName,'w',zipfile.ZIP_DEFLATED)
-        parentDir = self.getParentDirectory(self.charFile)
+        parentDir = self.getParentDirectory(self.myCharFile)
+        print(parentDir)
         for dirPath, dirNames, fileNames in os.walk(parentDir):
             for fileName in fileNames:
                 file = os.path.join(dirPath, fileName)
+                print(file)
                 zf.write(file, file[len(parentDir)+1:])
         zf.close()
         #self.conn_socket.send(sfileName.encode('utf8'))
@@ -598,9 +603,10 @@ class image_window:
                     break
                 self.conn_socket.send(data)
                 
+        time.sleep(1) # delete after send in fixed len
         self.conn_socket.send(b'EOF')
         print('send success!')
-        #os.remove(sfileName)
+        os.remove(sfileName)
         
             
     def getActionPath(self, action_filename):
