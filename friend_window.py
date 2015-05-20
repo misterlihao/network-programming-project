@@ -171,17 +171,15 @@ class FriendWin:
         while True:
             sc, scName= sock.accept()
             friendID = None
-            friChafile = None
             myChafile = None
             callbackfunc = None
             for list in self.friend_list_item_list:
                 if list.IsMe(scName[0]):
                     friendID = list.friend_id
-                    friChafile = list.model.friend_name
                     myChafile = list.chat_win.myCharFile
-                    callbackfunc = list.chat_win.setChadisplay     
+                    callbackfunc = list.chat_win.setChadisplay
                     break
-            arg = (sock, myChafile, friChafile, friendID, callbackfunc)
+            arg = (sc, myChafile, friendID, callbackfunc)
             threading.Thread(None, updataIfNeed, args=arg).start()
 
 import time

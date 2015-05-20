@@ -1,6 +1,7 @@
 import socket
 import os
 import time
+import zipfile
 
 def getParentDirectory(path):
     path2 = path.split('/')
@@ -35,7 +36,7 @@ def getCharDataSize(charDirectory):
             temp += os.path.getsize(file)
     return temp
 
-def updateCharacter(friChadir, friendID, func):
+def updateCharacter(sock, friChadir, friendID, func):
     print('update Character ...')
     fileName = friendID+'.zip'
     with open(fileName, 'wb') as cfile:
@@ -56,7 +57,7 @@ def updateCharacter(friChadir, friendID, func):
     #win32gui.ShowWindow(self.hwnd, 1)
     os.remove(fileName)
 
-def uploadCharacter(myChadir):
+def uploadCharacter(sock, myChadir):
     print('upload Character ...')
     sfileName = 'ArchiveName.zip'
     zf = zipfile.ZipFile(sfileName,'w',zipfile.ZIP_DEFLATED)
@@ -65,7 +66,7 @@ def uploadCharacter(myChadir):
         for fileName in fileNames:
             file = os.path.join(dirPath, fileName)
             #print(file)
-            zf.write(file, file[len(parentDir)+1:])
+            zf.write(file, file[len(myChadir)+1:])
     zf.close()
     with open(sfileName, 'rb') as file:
         while True:
@@ -83,17 +84,21 @@ def updataIfNeed(sock, myChafile, friendID, func, callbackFunc = None):
     firChafile = func(None)
     friChadir = getParentDirectory(firChafile)
     myChadir = getParentDirectory(myChafile)
+    print(sock)
     if not checkCharVersion(sock, myChadir, friChadir):
         sock.send('True'.encode('utf8'))
-        data = self.sock.recv(8192).decode()
+        data = sock.recv(8192).decode()
         if data=='True':
-            uploadCharacter(myChadir)
-        updateCharacter(friChadir, friendID, func)
+            myThread = threading.Thread(target=uploadCharacter, arg=(sock, myChadir))
+            myThread.setDaemon(True)
+            myThread.start()
+            #uploadCharacter(sock, myChadir)
+        updateCharacter(sock, friChadir, friendID, func)
     else:
         sock.send('False'.encode('utf8'))
         data = sock.recv(8192).decode()
         if data == 'True':
-            uploadCharacter(myChadir)
+            uploadCharacter(sock, myChadir)
     if callbackFunc != None:
         callbackFunc()
         
