@@ -1,5 +1,6 @@
 import socket
 import os
+import threading
 import time
 import zipfile
 
@@ -89,7 +90,7 @@ def updataIfNeed(sock, myChafile, friendID, func, callbackFunc = None):
         sock.send('True'.encode('utf8'))
         data = sock.recv(8192).decode()
         if data=='True':
-            myThread = threading.Thread(target=uploadCharacter, arg=(sock, myChadir))
+            myThread = threading.Thread(target=uploadCharacter, args=(sock, myChadir))
             myThread.setDaemon(True)
             myThread.start()
             #uploadCharacter(sock, myChadir)
