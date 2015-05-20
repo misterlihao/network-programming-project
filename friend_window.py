@@ -2,6 +2,7 @@
 @author: misterlihao
 This is supposed to be main window
 '''
+from synchronizationRole import updataIfNeed
 import friend_list_item as FLI
 import win32gui, win32api, win32con
 import struct
@@ -176,9 +177,9 @@ class FriendWin:
             for list in self.friend_list_item_list:
                 if list.IsMe(scName[0]):
                     friendID = list.friend_id
-                    friChafile = list.Model.friend_name
+                    friChafile = list.model.friend_name
                     myChafile = list.chat_win.myCharFile
-                    callbackfunc = list.chat_win.setChadisplay()       
+                    callbackfunc = list.chat_win.setChadisplay     
                     break
             arg = (sock, myChafile, friChafile, friendID, callbackfunc)
             threading.Thread(None, updataIfNeed, args=arg).start()

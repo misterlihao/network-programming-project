@@ -1,5 +1,6 @@
 # example1.py
 import os
+from synchronizationRole import updataIfNeed
 import zipfile
 import struct
 import win32api
@@ -618,9 +619,9 @@ class image_window:
         
     def sendVersionAndUpdata(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect(('', 12348))
+        sock.connect((self.ip, 12348))
         #arg = (sock, myChafile, friChafile, friendID, callbackfunc)
-        updataIfNeed(sock, self.myCharFile, self.charFile, self.friendID, self.setChadisplay, self.callbackfunc)
+        updataIfNeed(sock, self.myCharFile, self.friendID, self.setChadisplay, self.callbackfunc)
             
     def getActionPath(self, action_filename):
         path = self.getParentDirectory(self.charFile)
@@ -629,8 +630,11 @@ class image_window:
     def callbackfunc(self):
         print('callback')
     
-    def setChadisplay(self, value):
+    def setChadisplay(self, value=None):
+        if value == None:
+            return self.charFile
         win32gui.ShowWindow(self.hwnd, value)
+        return None
 
     
 def getSkelFile():

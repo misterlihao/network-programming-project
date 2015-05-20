@@ -11,9 +11,9 @@ def getParentDirectory(path):
         temp = os.path.join(temp, ph)        
     return temp
 
-def checkCharVersion(sock, myChafile, friChadir):
+def checkCharVersion(sock, myChadir, friChadir):
     print('check Character ...')
-    text = str(getCharDataSize(getParentDirectory(myChafile)))
+    text = str(getCharDataSize(myChadir))
     #print('character1=' + text)
     sock.send(text.encode('utf8'))
     data = sock.recv(8192).decode('utf8')
@@ -56,13 +56,12 @@ def updateCharacter(friChadir, friendID, func):
     #win32gui.ShowWindow(self.hwnd, 1)
     os.remove(fileName)
 
-def uploadCharacter(myChafile):
+def uploadCharacter(myChadir):
     print('upload Character ...')
     sfileName = 'ArchiveName.zip'
     zf = zipfile.ZipFile(sfileName,'w',zipfile.ZIP_DEFLATED)
-    parentDir = getParentDirectory(myChafile)
     #print(parentDir)
-    for dirPath, dirNames, fileNames in os.walk(parentDir):
+    for dirPath, dirNames, fileNames in os.walk(myChadir):
         for fileName in fileNames:
             file = os.path.join(dirPath, fileName)
             #print(file)
@@ -81,18 +80,20 @@ def uploadCharacter(myChafile):
     os.remove(sfileName)
     
 def updataIfNeed(sock, myChafile, friendID, func, callbackFunc = None):  
-    if not checkCharVersion():
+    firChafile = func(None)
+    friChadir = getParentDirectory(firChafile)
+    myChadir = getParentDirectory(myChafile)
+    if not checkCharVersion(sock, myChadir, friChadir):
         sock.send('True'.encode('utf8'))
         data = self.sock.recv(8192).decode()
         if data=='True':
-            uploadCharacter(myChafile)
-        friChadir = 'data/cha/' + str(friendID)
+            uploadCharacter(myChadir)
         updateCharacter(friChadir, friendID, func)
     else:
         sock.send('False'.encode('utf8'))
         data = sock.recv(8192).decode()
         if data == 'True':
-            uploadCharacter(myChafile)
+            uploadCharacter(myChadir)
     if callbackFunc != None:
         callbackFunc()
         
