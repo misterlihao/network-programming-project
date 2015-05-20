@@ -10,6 +10,7 @@ import threading
 import online_check as oc
 import message_transaction as mt
 import queue
+import socket
 from WM_APP_MESSAGES import *
 import check_online_window as COW
 class FriendWin:
@@ -59,6 +60,11 @@ class FriendWin:
         myThread = threading.Thread(target=self.RefreashFriendStatusInThread)
         myThread.setDaemon(True)
         myThread.start()
+        '''check character and updata if need'''
+        myThread = threading.Thread(target=self.recvVersionAndUpdata)
+        myThread.setDaemon(True)
+        myThread.start()
+        
         
     def RegisterClass(self):
         className = "friend_window"
@@ -157,6 +163,25 @@ class FriendWin:
         win32gui.PostQuitMessage(0)
         return win32gui.DefWindowProc(hwnd, msg, wp, lp)
     
+    def recvVersionAndUpdata(self):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.bind(('', 12348))
+        sock.listen(2)
+        while True:
+            sc, scName= sock.accept()
+            friendID = None
+            friChafile = None
+            myChafile = None
+            callbackfunc = None
+            for list in self.friend_list_item_list:
+                if list.IsMe(scName[0]):
+                    friendID = list.friend_id
+                    friChafile = list.Model.friend_name
+                    myChafile = list.chat_win.myCharFile
+                    callbackfunc = list.chat_win.setChadisplay()       
+                    break
+            arg = (sock, myChafile, friChafile, friendID, callbackfunc)
+            threading.Thread(None, updataIfNeed, args=arg).start()
 
 import time
 if __name__ == '__main__':

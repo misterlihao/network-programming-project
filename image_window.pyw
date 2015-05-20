@@ -125,18 +125,23 @@ class image_window:
         self.tmp_anime=""      
         
     def DoAfterConnectEstablished(self):  
+        '''
         if not self.checkCharVersion():
             self.conn_socket.send('True'.encode('utf8'))
             data = self.conn_socket.recv(8192).decode()
             if bool(data=='True'):
-                self.uploadCharacter()
-            self.updateCharacter()
+                funa = getattr(self, 'uploadCharacter')
+                threading.Thread(None, funa).start()
+                #self.uploadCharacter()
+            funb = getattr(self, 'updateCharacter')
+            threading.Thread(None, funb).start()
+            #self.updateCharacter()
         else:
             self.conn_socket.send('False'.encode('utf8'))
             data = self.conn_socket.recv(8192).decode()
             if data == 'True':
                 self.uploadCharacter()
-            
+        '''     
         thread = threading.Thread(target=self.listen_to_chat_messagesInThread)
         thread.setDaemon(True)
         thread.start()
@@ -396,6 +401,9 @@ class image_window:
             self.conn_socket = mt.StartTalking(self.ip)
             if self.conn_socket == None:
                 return 
+            myThread = threading.Thread(target=self.sendVersionAndUpdata)
+            myThread.setDaemon(True)
+            myThread.start()
             self.DoAfterConnectEstablished() 
         
         self.conn_socket.send(self.input_text.get().encode('utf8'))
@@ -608,10 +616,21 @@ class image_window:
         print('send success!')
         os.remove(sfileName)
         
+    def sendVersionAndUpdata(self):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect(('', 12348))
+        #arg = (sock, myChafile, friChafile, friendID, callbackfunc)
+        updataIfNeed(sock, self.myCharFile, self.charFile, self.friendID, self.setChadisplay, self.callbackfunc)
             
     def getActionPath(self, action_filename):
         path = self.getParentDirectory(self.charFile)
         return path + '/skeleton/'+action_filename
+    
+    def callbackfunc(self):
+        print('callback')
+    
+    def setChadisplay(self, value):
+        win32gui.ShowWindow(self.hwnd, value)
 
     
 def getSkelFile():
