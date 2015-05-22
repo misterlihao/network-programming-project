@@ -2,7 +2,7 @@ import socket
 import os
 import time
 import zipfile
-
+import threading
 def getParentDirectory(path):
     path2 = path.split('/')
     temp=''
@@ -13,9 +13,7 @@ def getParentDirectory(path):
     return temp
 
 def checkCharVersion(sock, myChadir, friChadir):
-    print('check Character ...')
     text = str(getCharDataSize(myChadir))
-    #print('character1=' + text)
     sock.send(text.encode('utf8'))
     data = sock.recv(8192).decode('utf8')
     if cmpCharVersion(getCharDataSize(friChadir), int(data)):
@@ -37,13 +35,11 @@ def getCharDataSize(charDirectory):
     return temp
 
 def updateCharacter(sock, friChadir, friendID, func):
-    print('update Character ...')
     fileName = friendID+'.zip'
     with open(fileName, 'wb') as cfile:
         while True:
             data = sock.recv(4096)
             if data == b'EOF':
-                print('recv file success!')
                 break
             cfile.write(data)
     func(0)
@@ -51,21 +47,17 @@ def updateCharacter(sock, friChadir, friendID, func):
     os.system('rd /S /Q ' + friChadir)
     zf = zipfile.ZipFile(fileName)
     zf.extractall(friChadir)
-    print('update success')
     zf.close()
     func(1)
     #win32gui.ShowWindow(self.hwnd, 1)
     os.remove(fileName)
 
 def uploadCharacter(sock, myChadir):
-    print('upload Character ...')
     sfileName = 'ArchiveName.zip'
     zf = zipfile.ZipFile(sfileName,'w',zipfile.ZIP_DEFLATED)
-    #print(parentDir)
     for dirPath, dirNames, fileNames in os.walk(myChadir):
         for fileName in fileNames:
             file = os.path.join(dirPath, fileName)
-            #print(file)
             zf.write(file, file[len(myChadir)+1:])
     zf.close()
     with open(sfileName, 'rb') as file:
@@ -77,19 +69,17 @@ def uploadCharacter(sock, myChadir):
             
     time.sleep(1) # delete after send in fixed len
     sock.send(b'EOF')
-    print('send success!')
     os.remove(sfileName)
     
 def updataIfNeed(sock, myChafile, friendID, func, callbackFunc = None):  
     firChafile = func(None)
     friChadir = getParentDirectory(firChafile)
     myChadir = getParentDirectory(myChafile)
-    print(sock)
     if not checkCharVersion(sock, myChadir, friChadir):
         sock.send('True'.encode('utf8'))
         data = sock.recv(8192).decode()
         if data=='True':
-            myThread = threading.Thread(target=uploadCharacter, arg=(sock, myChadir))
+            myThread = threading.Thread(target=uploadCharacter, args=(sock, myChadir))
             myThread.setDaemon(True)
             myThread.start()
             #uploadCharacter(sock, myChadir)

@@ -16,9 +16,9 @@ def ReceivingOnlineChecks():
     while(1):
         conn, address = s.accept()
         try:
-            pass#print('Checked from:', address)
-        except:
-            print('EXEXEX')
+            pass
+        except Exception as e:
+            print('ReceivingOnlineChecks:', e)
         conn.close()
     s.close()
     

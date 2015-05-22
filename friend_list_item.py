@@ -31,29 +31,32 @@ class Model:
     '''
     for data storage
     '''
-    def __init__(self, friend_name, ip):
+    def __init__(self, ip, friend_name, online, id):
+        self.set(friend_name, ip, online, id)
+    
+    def set(self, ip, friend_name, online, id):
         self.friend_name = friend_name
+        self.online = online
+        self.friend_id = id
         self.ip = ip
-        self.online = False
     
 class FriendListItemView:
     '''
     window of friend list item
     '''
-    def __init__(self, friend_window_class, _id, friend_name, ip, friend_id):
+    def __init__(self, friend_window_object, _id, friend_name, ip, friend_id, w, h):
         '''
         _id is it's win32 id
         friend_name stores the name of the friend it represents
         ip is the friend's address
         '''
-        self.model = Model(friend_name, ip)
+        self.model = Model(ip, friend_name, False, friend_id)
         self.id = _id
         self.chat_win = None
-        self.friend_id = friend_id
         self.hwnd = win32gui.CreateWindow(
             "window_list_item","",
             win32con.WS_VISIBLE|win32con.WS_CHILD,
-            0, 0, 0, 0, friend_window_class.hwnd, _id,
+            0, 0, 0, 0, friend_window_object.hwnd, _id,
             win32gui.GetModuleHandle(None),
             None)
         
@@ -68,15 +71,18 @@ class FriendListItemView:
         self.chat_btn = win32gui.CreateWindow(
             "Button","chat",
             win32con.WS_VISIBLE|win32con.WS_CHILD|win32con.BS_PUSHBUTTON,
-            130, 0, 70, 24, self.hwnd, _id,
+            w-70, 0, 70, 24, self.hwnd, _id,
             win32gui.GetModuleHandle(None),
             None)
-        self.friend_window_class = friend_window_class
+        self.friend_window_class = friend_window_object
+
+    def SetFriendData(self, friend_data):
+        '''friend_data: a list of form in friendList'''
+        self.model.set(*friend_data)
         
     def OnCommand(self, hwnd, msg, wp, lp):
         '''win32 callback
         ensure you know what you're doing'''
-        print('command ', self.id)
         if (wp>>16)&0xffff == win32con.BN_CLICKED\
             and wp&0xffff == self.id and lp == self.chat_btn:
             try:
@@ -120,17 +126,20 @@ class FriendListItemView:
             self.model.friend_name, 
             sock, 
             self.model.ip, 
-            self.getCharPath(self.friend_id)
-            ,self.friend_id)
+            self.getCharPath(self.model.friend_id)
+            ,self.model.friend_id)
     
     def getCharPath(self, id):
         return 'data/cha/'+id+'/character1.txt'
     
-    def IsMe(self, ip):
+    def IpIsMe(self, ip):
         '''
         check if the ip is the friend this window represents
         '''
         return ip == self.model.ip
+    
+    def IdIsMe(self, id):
+        return id == self.model.friend_id
     
     def OnChatClosed(self):
         '''hand made callback, passed to image_window
@@ -144,7 +153,6 @@ class FriendListItemView:
     def OnDestroy(self, hwnd, msg, wp, lp):
         '''win32 callback
         ensure you know what you're doing'''
-        print('fli ondestroy')
         try:win32gui.DestroyWindow(self.chat_win.hwnd)
         except:pass
         return win32gui.DefWindowProc(hwnd, msg, wp, lp)
@@ -228,7 +236,7 @@ class FriendListItemView:
         return x,y
     
 item_id_acc = 0
-def create(friend_window_class, friend_name, ip, friend_id, x, y, w, h):
+def create(friend_window_object, friend_name, ip, friend_id, x, y, w, h):
     '''
     return a item window
     should have a parent at creation moment,
@@ -238,7 +246,7 @@ def create(friend_window_class, friend_name, ip, friend_id, x, y, w, h):
     item_id = item_id_acc
     item_id_acc += 1
     
-    view = FriendListItemView(friend_window_class, item_id, friend_name,ip, friend_id)
+    view = FriendListItemView(friend_window_object, item_id, friend_name,ip, friend_id, w, h)
     win32gui.SetWindowPos(view.hwnd, win32con.HWND_TOP, x, y, w, h, win32con.SWP_NOOWNERZORDER)
     return view
         

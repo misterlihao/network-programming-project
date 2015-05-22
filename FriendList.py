@@ -1,5 +1,8 @@
 from online_check import *
 class FriendList:
+    '''
+    form of items = [ip, name, status, id]
+        '''
     def __init__(self, file_name):
         self.file_name = file_name
         self.ip_name_status_list = []
@@ -9,7 +12,7 @@ class FriendList:
                 if line[-1]=='\n':
                     line = line[:-1]
                 ip, name,id = line.split(':')
-                self.ip_name_status_list.append([ip, name, 'Off', id])#default to offline
+                self.ip_name_status_list.append([ip, name, False, id])#default to offline
                 if int(self.id_max) < int(id):
                     self.id_max = id
                 
@@ -22,14 +25,12 @@ class FriendList:
         for list in self.ip_name_status_list:
             if (list[1]==friend_name):
                 list[1] = new_name;
-                print("changed name to %s" % new_name)      
                 break;
     
     def ChangeFriendIp(self, friend_name, new_ip):
         for list in self.ip_name_status_list:
             if (list[1]==friend_name):
                 list[0] = new_ip;
-                print("changed ip to %s" % new_ip)
                 break;
         
     def RefreshOnlineStatus(self):
@@ -39,20 +40,19 @@ class FriendList:
         updated_friends = []
         for each in self.ip_name_status_list:
             if CheckSomeoneOnline(each[0]) == True\
-                    and each[2] == 'Off':
+                    and each[2] == False:
                 updated_friends.append(self.ip_name_status_list.index(each))
-                each[2] = 'On'
+                each[2] = True
             elif CheckSomeoneOnline(each[0]) == False\
-                    and each[2] == 'On':
+                    and each[2] == True:
                 updated_friends.append(self.ip_name_status_list.index(each))
-                each[2] = 'Off'
-        
+                each[2] = False
         return updated_friends
     
     def AddNewFriend(self,ip, name):
         '''
         '''
-        self.ip_name_status_list.append([ip, name, 'Off', self.id_max+1])
+        self.ip_name_status_list.append([ip, name, False, self.id_max+1])
         self.id_max += 1
         pass
     

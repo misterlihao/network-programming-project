@@ -29,7 +29,7 @@ wc.hCursor = win32gui.LoadCursor(0, win32con.IDC_ARROW)
 wc.hbrBackground = win32con.COLOR_WINDOW + 1
 wc.hIcon = win32gui.LoadIcon(0, win32con.IDI_APPLICATION)
 wc.lpszClassName = className
-wc.cbWndExtra = win32con.DLGWINDOWEXTRA + struct.calcsize("Pi")
+wc.cbWndExtra = win32con.DLGWINDOWEXTRA +struct.calcsize("Pi")
 # wc.hIconSm = 0
 win32gui.RegisterClass(wc)
 
@@ -38,7 +38,7 @@ def getXY(lparam):
 
 def turnOffTk(tk_object):
     tk_object.destroy()
-    #tk_object.quit()
+    tk_object.quit()
 
 def getCharacter(fileName):
     charFile = open(fileName, 'r')
@@ -124,7 +124,7 @@ class image_window:
             self.DoAfterConnectEstablished()
         '''for selecting the anime to send'''
         self.tmp_anime=""      
-        
+    
     def DoAfterConnectEstablished(self):  
         '''
         if not self.checkCharVersion():
@@ -152,7 +152,6 @@ class image_window:
         with open(config_file) as file:
             for line in file:
                 cap = line.split(":")
-                print(cap)
                 if cap[0] == 'readCheck':
                     self.readCheck=bool(cap[1]=='True')
                 elif cap[0] == 'myCharFile':
@@ -176,6 +175,8 @@ class image_window:
                              self.hinst,
                              None)
         win32gui.SetLayeredWindowAttributes(self.hwnd, RGB(255,255,255),0,win32con.LWA_COLORKEY)
+        self.StayTop()
+        
     def SetImages(self, Image_list):
         '''private purpose, for showing action implementation'''
         try:
@@ -227,19 +228,12 @@ class image_window:
         return True
     def OnMouseMove(self, hwnd, message, wparam, lparam):
         if self.dragging :
-            '''old, laggy, working method...
-            cur_x, cur_y = win32gui.ClientToScreen(self.hwnd, (win32api.LOWORD(lparam), win32api.HIWORD(lparam))) 
-            dx = cur_x-self.drag_point[0]
-            dy = cur_y-self.drag_point[1]
-            if dx == 0 and dy == 0:
-                return True
-            if not self.drag_showing:
-                self.drag_showing = True
-                self.showAction(self.getActionPath('drag.txt'), True)
-            x,y = self.drag_pre_pos'''
-            
-            '''not tested method'''
-            cur_x, cur_y = win32gui.ClientToScreen(self.hwnd, (win32api.LOWORD(lparam), win32api.HIWORD(lparam))) 
+            cur_x, cur_y = win32gui.ClientToScreen(self.hwnd, (win32api.LOWORD(lparam), win32api.HIWORD(lparam)))
+            '''deal for negative cur_x, cur_y'''
+            if cur_x > (1<<15)-1:
+                cur_x -= (1<<16)
+            if cur_y > (1<<15)-1:
+                cur_y -= (1<<16)
             dx = cur_x-self.drag_point[0]
             dy = cur_y-self.drag_point[1]
             if abs(dx)+abs(dy) < 1:
@@ -269,6 +263,7 @@ class image_window:
             try:
                 turnOffTk(self.speak_window)
                 self.speak_window = None
+                self.speak_window_hwnd = 0
             except Exception:
                 self.ShowSpeakWindow()
         elif item_id == 2:
@@ -305,6 +300,7 @@ class image_window:
         this function does not close it even if it's shown.
         '''
         self.speak_window = tk.Tk()
+        self.speak_window.title('__speakWindow__')
         self.speak_window.overrideredirect(True)
         self.speak_window.wm_attributes('-alpha',1,'-disabled',False,'-toolwindow',True, '-topmost', True)
         frame = tk.Frame(self.speak_window)
@@ -317,6 +313,7 @@ class image_window:
         anime_btn.pack(side='right')
         frame.pack()
         
+        self.input_text.focus()
         self.speak_window.geometry('+%d+%d' % self.GetSpeakWindowPos())
         self.speak_window.mainloop()
     def InputTextHitReturn(self, event):
@@ -393,12 +390,13 @@ class image_window:
         selection=widget.curselection()
         value = widget.get(selection[0])
         self.tmp_anime = value
-        print ("selection:", selection, ": '%s'" % value)
         
     def SendText(self):
         '''
         SendText to remote chatter'''
-        if self.conn_socket == None:
+        '''get the speak_window handle'''
+        speak_window_hwnd = win32gui.GetForegroundWindow()
+        """if self.conn_socket == None:
             self.conn_socket = mt.StartTalking(self.ip)
             if self.conn_socket == None:
                 return 
@@ -409,10 +407,11 @@ class image_window:
         
         self.conn_socket.send(self.input_text.get().encode('utf8'))
         mt.SendAnime(self.tmp_anime, self.conn_socket)
-        self.this_messages.append(self.input_text.get())
+        self.this_messages.append(self.input_text.get())"""
         
-        self.input_text.delete(0, tk.END)
         self.showAction(self.getActionPath('send.txt'))
+        self.input_text.delete(0, tk.END)
+        win32gui.SetFocus(speak_window_hwnd)
         
     def OnPaint(self, hwnd, message, wparam, lparam):
         dc,ps = win32gui.BeginPaint(hwnd)
@@ -438,7 +437,6 @@ class image_window:
         self.after()
         
         self.actionThread = None
-        print('image_window on destroy')
         return True
     def getCharFile(self):
         return self.charFile
@@ -448,7 +446,6 @@ class image_window:
         the acting parameter should not be used by public user.
         '''
         skelData=[]
-        print(skelFile)
         charFile = open(skelFile, 'r')   
         for line in charFile.readlines():
             skelData.append(line.split())
@@ -462,6 +459,7 @@ class image_window:
         
         charData = getCharacter(self.getCharFile())
         self.Resize(x_size, y_size)
+        
         charData = sorted(charData,key= lambda temp:int(temp[2]))
         img=[]
         skelTypes = 7
@@ -545,8 +543,6 @@ class image_window:
         return temp
                 
     def cmpCharVersion(self, myDataSize = 0, hisDataSize = 0):
-        print('myfriendsize:'+str(myDataSize))
-        print('hissize:'+str(hisDataSize))
         if myDataSize == hisDataSize:
             return True
         return False
@@ -560,26 +556,20 @@ class image_window:
         return temp
 
     def checkCharVersion(self):
-        print('check Character ...')
         text = str(self.getCharDataSize(self.getParentDirectory(self.myCharFile)))
-        print('character1=' + text)
         self.conn_socket.send(text.encode('utf8'))
         data = self.conn_socket.recv(8192).decode('utf8')
         if self.cmpCharVersion(self.getCharDataSize(self.getParentDirectory(self.charFile)), int(data)):
-            #print('cmpCharVersion is T')
             return True
-        #print('cmpCharVersion is F')
         return False
 
     def updateCharacter(self):
-        print('update Character ...')
         #fileName = self.conn_socket.recv(4096).decode('utf8')
         fileName = self.friendID+'.zip'
         with open(fileName, 'wb') as cfile:
             while True:
                 data = self.conn_socket.recv(4096)
                 if data == b'EOF':
-                    print('recv file success!')
                     break
                 cfile.write(data)
 
@@ -587,21 +577,17 @@ class image_window:
         os.system('rd /S /Q ' + self.getParentDirectory(self.charFile))
         zf = zipfile.ZipFile(fileName)
         zf.extractall(self.getParentDirectory(self.charFile))
-        print('update success')
         zf.close()
         win32gui.ShowWindow(self.hwnd, 1)
         os.remove(fileName)
         
     def uploadCharacter(self):
-        print('upload Character ...')
         sfileName = 'ArchiveName.zip'
         zf = zipfile.ZipFile(sfileName,'w',zipfile.ZIP_DEFLATED)
         parentDir = self.getParentDirectory(self.myCharFile)
-        print(parentDir)
         for dirPath, dirNames, fileNames in os.walk(parentDir):
             for fileName in fileNames:
                 file = os.path.join(dirPath, fileName)
-                print(file)
                 zf.write(file, file[len(parentDir)+1:])
         zf.close()
         #self.conn_socket.send(sfileName.encode('utf8'))
@@ -614,7 +600,6 @@ class image_window:
                 
         time.sleep(1) # delete after send in fixed len
         self.conn_socket.send(b'EOF')
-        print('send success!')
         os.remove(sfileName)
         
     def sendVersionAndUpdata(self):
@@ -650,7 +635,6 @@ class ChangeImageThread(threading.Thread):
     def run(self):
         try:
             while self.win.actionThread is self:
-                #print('switch image')
                 self.win.SwitchNextImage()
                 if self.only_once and self.win.image_index == 0:
                     if self.started:
@@ -665,7 +649,7 @@ if __name__ == '__main__':
     test codes are too old, try some new codes.
     '''
 
-    win = image_window(lambda:win32gui.PostQuitMessage(0), '123', None, '111.111.111.111', 'data/cha/character1/character1.txt')
+    win = image_window(lambda:win32gui.PostQuitMessage(0), '123', None, '111.111.111.111', 'data/cha/character1/character1.txt', '1')
     win.showAction('data/cha/1/skeleton/send.txt')
     #win.uploadCharacter()
     print('uploadCharacter done')

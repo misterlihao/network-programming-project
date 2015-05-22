@@ -26,13 +26,10 @@ class FriendWin:
           win32con.WM_DESTROY: self.OnDestroy,
           win32con.WM_SYSCOMMAND: self.OnSysCommand,
           win32con.WM_COMMAND: self.OnCommand,
+          win32con.WM_MOUSEWHEEL: self.OnMouseWheel,
           WM_CONNACCEPTED: self.OnConnAccepted,
           WM_FRIENDREFRESHED: self.OnFriendRefreshed,
         }
-        cn = self.RegisterClass()
-        self.BuildWindow(cn)
-        
-        rect = win32gui.GetClientRect(self.hwnd)
         '''get friend list object'''
         self.friend_list = FriendList('friends')
         '''create list of child window'''
@@ -40,12 +37,26 @@ class FriendWin:
         '''for thread to insert new connections into
            and for main thread to get new connections from'''
         self.newconn_queue = queue.Queue()
+        '''friend switch online status'''
+        self.updated_friends = []
+        '''index of frist friend in self.friend_list'''
+        self.friend_first_index = 0
+        '''index of frist friend in self.friend_list'''
+        self.friend_list_len = 3
         '''create child windows of friends'''
+        
+        cn = self.RegisterClass()
+        self.BuildWindow(cn)
+        
+        rect = win32gui.GetClientRect(self.hwnd)
+        win32gui.SetWindowPos(self.hwnd, 0, 0, 0, 250, (500-rect[3])+self.friend_list_len*24, win32con.SWP_NOMOVE|win32con.SWP_NOOWNERZORDER)
         for i in range(len(self.friend_list)):
+            if i >= self.friend_list_len:
+                break
             name = self.friend_list[i][1]
             ip = self.friend_list[i][0]
             friend_id = self.friend_list[i][3]
-            fli = FLI.create(self, name, ip, friend_id, 0, 24*i, rect[2], 24)
+            fli = FLI.create(self, ip, name, friend_id, 0, 24*i, rect[2], 24)
             self.friend_list_item_list.append(fli)
         
         win32gui.ShowWindow(self.hwnd, win32con.SW_NORMAL)
@@ -82,8 +93,10 @@ class FriendWin:
         return className
 
     def BuildWindow(self, className):
-        style = win32con.WS_OVERLAPPED|win32con.WS_CAPTION|win32con.WS_SYSMENU|win32con.WS_MINIMIZEBOX
-        w=200; h=500
+        style = win32con.WS_OVERLAPPEDWINDOW &~ win32con.WS_THICKFRAME
+        w=250
+        h=500
+        
         self.hwnd = win32gui.CreateWindow(
                              className,
                              "freind list", style,
@@ -131,7 +144,7 @@ class FriendWin:
         
         friend_list_item = None
         for fli in self.friend_list_item_list:
-            if fli.IsMe(addr[0]):
+            if fli.IpIsMe(addr[0]):
                 friend_list_item = fli
         
         print('user', friend_list_item.model.friend_name, 'connected at', addr)
@@ -146,10 +159,36 @@ class FriendWin:
     
     def OnFriendRefreshed(self, hwnd, msg, wp, lp):    
         for index in self.updated_friends:
-            friend_list_item = self.friend_list_item_list[index]
-            friend_list_item.model.online = not friend_list_item.model.online
-            win32gui.InvalidateRect(friend_list_item.hwnd, (FLI.online_indicate_rect),True)
+            print('find friend:', self.friend_list[index][1])
+            for item in self.friend_list_item_list:
+                if item.IdIsMe(self.friend_list[index][3]): 
+                    print('friend in list')
+                    item.model.online = not item.model.online
+                    win32gui.InvalidateRect(item.hwnd, (FLI.online_indicate_rect),True)
+
+    def OnMouseWheel(self, hwnd, msg, wp, lp):
+        delta = wp>>16
+        if delta//win32con.WHEEL_DELTA == 0:
+            if delta < 0:
+                delta = -1
+            elif delta > 0:
+                delta = 1
+        else:
+            delta = delta//win32con.WHEEL_DELTA
         
+        self.friend_first_index -= delta
+        if self.friend_first_index < 0:
+            self.friend_first_index = 0
+        elif self.friend_first_index + self.friend_list_len > len(self.friend_list):
+            self.friend_first_index = len(self.friend_list) - self.friend_list_len
+            
+        for i in range(self.friend_list_len):
+            item = self.friend_list_item_list[i]
+            item.SetFriendData(self.friend_list[i+self.friend_first_index])
+            win32gui.InvalidateRect(item.hwnd, None, True)
+            
+        return True
+    
     def OnDestroy(self, hwnd, msg, wp, lp):
         for each in self.friend_list_item_list:
             try:
@@ -174,7 +213,7 @@ class FriendWin:
             myChafile = None
             callbackfunc = None
             for list in self.friend_list_item_list:
-                if list.IsMe(scName[0]):
+                if list.IpIsMe(scName[0]):
                     friendID = list.friend_id
                     myChafile = list.chat_win.myCharFile
                     callbackfunc = list.chat_win.setChadisplay
