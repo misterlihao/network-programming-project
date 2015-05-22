@@ -116,10 +116,14 @@ class FriendListItemView:
         should be the only entrance of image_window
         --supposed just called once before a corresponding win32gui.DestroyWindow--
         above line is not truth anymore
-        restart image_window if called tiwce or more
+        give a new socket to chat_win if chat_win is windowed
         '''
-        try:win32gui.DestroyWindow(self.chat_win.hwnd)
-        except :pass
+        if win32gui.IsWindow(self.chat_win.hwnd):
+            if sock == None:
+                raise Exception('start chat when opened, without socket')
+            else:
+                self.chat_win.setConnectedSocket(sock)
+        
         win32gui.SetWindowText(self.chat_btn, 'close')
         self.chat_win = image_window(
             self.OnChatClosed, 

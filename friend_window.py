@@ -77,7 +77,6 @@ class FriendWin:
         myThread.setDaemon(True)
         myThread.start()
         
-        
     def RegisterClass(self):
         className = "friend_window"
         wc = win32gui.WNDCLASS()

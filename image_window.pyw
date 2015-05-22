@@ -110,8 +110,6 @@ class image_window:
         self.myCharFile = 'data/cha/character1/character1.txt'
         '''the character file (path of bitmaps)'''
         self.charFile = characterFile
-        '''if the socket is connected, not validated already'''
-        self.connected = False
         '''the chat msg queue for thread to insert into
            and for main thread to get from'''
         self.chatmsg_queue = queue.Queue()
@@ -124,6 +122,11 @@ class image_window:
             self.DoAfterConnectEstablished()
         '''for selecting the anime to send'''
         self.tmp_anime=""      
+    
+    def setConnectedSocket(self, sock):
+        if self.conn_socket != None:
+            raise Exception('set socket when connected')
+        self.conn_socket = sock
     
     def DoAfterConnectEstablished(self):  
         '''
@@ -146,7 +149,6 @@ class image_window:
         thread = threading.Thread(target=self.listen_to_chat_messagesInThread)
         thread.setDaemon(True)
         thread.start()
-        self.connected = True
         
     def ReadConfig(self):
         with open(config_file) as file:
@@ -531,7 +533,11 @@ class image_window:
         '''
         msg = self.chatmsg_queue.get()
         print('%s: %s'%(self.chat_name,msg))
+        self.showChatMsg(msg)
 
+    def showChatMsg(self, msg):
+        pass
+    
     def getParentDirectory(self, path):
         #return os.path.abspath(os.path.join(path, os.pardir))
         path2 = path.split('/')
@@ -649,7 +655,7 @@ if __name__ == '__main__':
     test codes are too old, try some new codes.
     '''
 
-    win = image_window(lambda:win32gui.PostQuitMessage(0), '123', None, '111.111.111.111', 'data/cha/character1/character1.txt', '1')
+    win = image_window(lambda:win32gui.PostQuitMessage(0), '123', None, '111.111.111.111', 'data/cha/character1/read2.txt', '1')
     win.showAction('data/cha/1/skeleton/send.txt')
     #win.uploadCharacter()
     print('uploadCharacter done')
