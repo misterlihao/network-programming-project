@@ -180,7 +180,7 @@ class FriendListItemView:
     
     def ShowEditWindow(self):
         '''
-        show the speaking window.
+        show the Edit window.
         this function does not close it even if it's shown.
         '''
         self.edit_window = tk.Tk()
