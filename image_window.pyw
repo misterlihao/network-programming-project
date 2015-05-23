@@ -18,6 +18,7 @@ from WM_APP_MESSAGES import *
 from win32api import RGB
 import queue
 from tkinter import Entry
+import myPacket as mp
 config_file="config"
 history_file="history"
 #execute once
@@ -130,12 +131,13 @@ class image_window:
         if self.conn_socket != None:
             raise Exception('set socket when connected')
         self.conn_socket = sock
+        self.DoAfterConnectEstablished()
     
     def DoAfterConnectEstablished(self):  
         '''
         if not self.checkCharVersion():
-            self.conn_socket.send('True'.encode('utf8'))
-            data = self.conn_socket.recv(8192).decode()
+            mp.sendPack(self.conn_socket, 'True'.encode('utf8'))
+            data = recvPacket(self.conn_socket, ).decode()
             if bool(data=='True'):
                 funa = getattr(self, 'uploadCharacter')
                 threading.Thread(None, funa).start()
@@ -144,8 +146,8 @@ class image_window:
             threading.Thread(None, funb).start()
             #self.updateCharacter()
         else:
-            self.conn_socket.send('False'.encode('utf8'))
-            data = self.conn_socket.recv(8192).decode()
+            mp.sendPack(self.conn_socket, 'False'.encode('utf8'))
+            data = recvPacket(self.conn_socket).decode()
             if data == 'True':
                 self.uploadCharacter()
         '''     
@@ -440,7 +442,7 @@ class image_window:
             myThread.start()
             self.DoAfterConnectEstablished() 
         
-        self.conn_socket.send(self.input_text.get().encode('utf8'))
+        mp.sendPack(self.conn_socket, self.input_text.get().encode('utf8'))
         mt.SendAnime(self.tmp_anime, self.conn_socket)
         self.this_messages.append(self.input_text.get())"""
         
@@ -548,7 +550,7 @@ class image_window:
         
         while True:
             try:
-                msg = self.conn_socket.recv(1000)
+                msg = recvPacket(self.conn_socket)
                 if msg == b"":
                     raise Exception()
             except:
@@ -595,18 +597,18 @@ class image_window:
 
     def checkCharVersion(self):
         text = str(self.getCharDataSize(self.getParentDirectory(self.myCharFile)))
-        self.conn_socket.send(text.encode('utf8'))
-        data = self.conn_socket.recv(8192).decode('utf8')
+        mp.sendPacket(self.conn_socket, text.encode('utf8'))
+        data = recvPacket(self.conn_socket).decode('utf8')
         if self.cmpCharVersion(self.getCharDataSize(self.getParentDirectory(self.charFile)), int(data)):
             return True
         return False
 
     def updateCharacter(self):
-        #fileName = self.conn_socket.recv(4096).decode('utf8')
+        #fileName = recvPacket(self.conn_socket).decode('utf8')
         fileName = self.friendID+'.zip'
         with open(fileName, 'wb') as cfile:
             while True:
-                data = self.conn_socket.recv(4096)
+                data = recvPacket(self.conn_socket)
                 if data == b'EOF':
                     break
                 cfile.write(data)
@@ -628,16 +630,16 @@ class image_window:
                 file = os.path.join(dirPath, fileName)
                 zf.write(file, file[len(parentDir)+1:])
         zf.close()
-        #self.conn_socket.send(sfileName.encode('utf8'))
+        #mp.sendPack(self.conn_socket, sfileName.encode('utf8'))
         with open(sfileName, 'rb') as file:
             while True:
                 data = file.read(4096)
                 if not data:
                     break
-                self.conn_socket.send(data)
+                mp.sendPacket(self.conn_socket, data)
                 
         time.sleep(1) # delete after send in fixed len
-        self.conn_socket.send(b'EOF')
+        mp.sendPacket(self.conn_socket, b'EOF')
         os.remove(sfileName)
         
     def sendVersionAndUpdata(self):

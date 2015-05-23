@@ -14,7 +14,7 @@ class FriendList:
                 ip, name,id = line.split(':')
                 self.ip_name_status_list.append([ip, name, False, id])#default to offline
                 if int(self.id_max) < int(id):
-                    self.id_max = id
+                    self.id_max = int(id)
                 
     def Save(self):
         with open(self.file_name, 'w') as file:

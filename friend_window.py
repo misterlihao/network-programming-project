@@ -14,6 +14,11 @@ import queue
 import socket
 from WM_APP_MESSAGES import *
 import check_online_window as COW
+import tkinter as tk
+from distutils.cmd import Command
+from test.test_heapq import SideEffectLT
+from tkinter.tix import COLUMN
+from tkinter.constants import BOTH
 class FriendWin:
     '''
     the main window
@@ -104,6 +109,7 @@ class FriendWin:
                              w,h,0,0,self.hinst,None)
         self.menubar = win32gui.CreateMenu()
         win32gui.AppendMenu(self.menubar, win32con.MF_STRING, 1, 'search ip')
+        win32gui.AppendMenu(self.menubar, win32con.MF_STRING, 2, 'add new friend')
         win32gui.SetMenu(self.hwnd, self.menubar)
     
     def OnCommand(self, hwnd, msg, wp, lp):
@@ -112,6 +118,12 @@ class FriendWin:
             if menu_id == 1:
                 point = win32gui.GetCursorPos()
                 COW.open_check_online_window(point[0], point[1])
+            elif menu_id == 2:
+                new_friend_list = []
+                point = win32gui.GetCursorPos()
+                OpenAddFriendWindow(point[0], point[1], new_friend_list)
+                for each in new_friend_list:
+                    self.friend_list.AddNewFriend(each[0], each[1])
         
     def OnSysCommand(self, hwnd, msg, wp, lp):
         '''win32 callback, edit to control
@@ -220,6 +232,40 @@ class FriendWin:
             arg = (sc, myChafile, friendID, callbackfunc)
             threading.Thread(None, updataIfNeed, args=arg).start()
 
+class OpenAddFriendWindow:
+    def __init__(self, x, y, new_friend_list):
+        '''
+        create the add friend window.
+        '''
+        self.root = tk.Tk()
+        self.root.title('add new friend')
+        self.input_panes = tk.PanedWindow(orient=tk.HORIZONTAL)
+        self.input_panes.pack(fill=BOTH, expand=1)
+        self.lable_for_ip = tk.Label(self.input_panes, text='ip:')
+        self.entry_for_ip = tk.Entry(self.input_panes, width=10)
+        self.lable_for_name = tk.Label(self.input_panes, text='name:')
+        self.entry_for_name = tk.Entry(self.input_panes, width=10)
+        self.input_panes.add(self.lable_for_ip)
+        self.input_panes.add(self.entry_for_ip)
+        self.input_panes.add(self.lable_for_name)
+        self.input_panes.add(self.entry_for_name)
+        self.button_panes = tk.PanedWindow(orient=tk.HORIZONTAL, width=15)
+        self.button_panes.pack(fill=BOTH, expand=1)
+        self.button_for_add = tk.Button(self.button_panes, text="Add this friend", command=lambda: self.CommitEntry(new_friend_list))
+        self.button_for_close = tk.Button(self.button_panes, text="Exit", command=self.Destroy, width=5)
+        self.button_panes.add(self.button_for_close) 
+        self.button_panes.add(self.button_for_add)
+        self.root.geometry('+%d+%d'% (x,y))
+        self.root.mainloop()
+        
+    def CommitEntry(self, new_friend_list):
+        ip = self.entry_for_ip.get()
+        name = self.entry_for_name.get()
+        new_friend_list.append((ip, name))
+        
+    def Destroy(self):
+        self.root.destroy()
+        
 import time
 if __name__ == '__main__':
     mainwin = FriendWin()
