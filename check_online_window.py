@@ -37,7 +37,7 @@ class open_check_online_window():
 class open_jumpout_window():
     def __init__(self, data, x, y):
         self.jw = tk.Tk()
-        self.jw.title('No way!')
+        self.jw.title('!')
         self.jw.resizable(False, False)
         self.jw.wm_attributes("-toolwindow", 1) 
         Ok = tk.Button(self.jw,

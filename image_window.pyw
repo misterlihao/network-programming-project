@@ -655,7 +655,7 @@ if __name__ == '__main__':
     test codes are too old, try some new codes.
     '''
 
-    win = image_window(lambda:win32gui.PostQuitMessage(0), '123', None, '111.111.111.111', 'data/cha/character1/read2.txt', '1')
+    win = image_window(lambda:win32gui.PostQuitMessage(0), '123', None, '111.111.111.111', 'data/cha/character1/character1.txt', '1')
     win.showAction('data/cha/1/skeleton/send.txt')
     #win.uploadCharacter()
     print('uploadCharacter done')
