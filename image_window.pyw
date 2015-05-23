@@ -17,6 +17,7 @@ import tkinter.messagebox as tkmb
 from WM_APP_MESSAGES import *
 from win32api import RGB
 import queue
+from tkinter import Entry
 config_file="config"
 history_file="history"
 #execute once
@@ -92,13 +93,15 @@ class image_window:
             self.readCheck=False
             print('no config file')  
         
-        self.acting = False
+        '''whether the drag action is showing'''
         self.drag_showing = False
+        '''whether character is being dragged''' 
         self.dragging = False
         '''history'''
         self.this_messages=[]
         '''for display'''
         self.chat_name = friend_name
+        
         self.history_window_width = 30 # in character
         '''callback function to be execute in ondestroy'''
         self.after = after_window_close
@@ -113,8 +116,8 @@ class image_window:
         '''the chat msg queue for thread to insert into
            and for main thread to get from'''
         self.chatmsg_queue = queue.Queue()
-        '''thread must be correctly terminated in some time (eg: ondestroy)
-            and socket must be terminate and released in some time, too'''
+        '''the chat msg window showing'''
+        self.chat_msg_win = []
         
         self.showAction(self.getActionPath('idle.txt'), True)
         
@@ -287,7 +290,10 @@ class image_window:
         control things here
         '''
         try:self.speak_window.geometry('+%d+%d' % self.GetSpeakWindowPos())
-        except Exception:pass
+        except :pass
+        for i in range(len(self.chat_msg_win)):
+            try:self.chat_msg_win[i].geometry('%dx%d+%d+%d' % self.GetChatMsgWinSizePos(i))
+            except :pass
         return win32gui.DefWindowProc(hwnd, message, wparam, lparam)
         
     def GetSpeakWindowPos(self):
@@ -302,7 +308,6 @@ class image_window:
         this function does not close it even if it's shown.
         '''
         self.speak_window = tk.Tk()
-        self.speak_window.title('__speakWindow__')
         self.speak_window.overrideredirect(True)
         self.speak_window.wm_attributes('-alpha',1,'-disabled',False,'-toolwindow',True, '-topmost', True)
         frame = tk.Frame(self.speak_window)
@@ -318,8 +323,36 @@ class image_window:
         self.input_text.focus()
         self.speak_window.geometry('+%d+%d' % self.GetSpeakWindowPos())
         self.speak_window.mainloop()
+        
+    def ShowNewChatMsgWin(self, msg):
+        '''show msg in a new bubble window'''
+        r = tk.Tk()
+        r.overrideredirect(True)
+        f = tk.Frame(r, bd=1,bg='black')
+        var = tk.StringVar()
+        l = tk.Label(f,bg='#bbddff', justify='center', fg='black', textvariable=var)
+        var.set(msg)
+        l.pack(fill='both',expand=True)
+        f.pack(fill='both',expand=True)
+        r.wm_attributes('-toolwindow',True, '-topmost', True)
+        r.geometry('%dx%d+%d+%d'%self.GetNewChatMsgWinSizePos())
+        self.chat_msg_win.append(r)
+        r.mainloop()
+        
     def InputTextHitReturn(self, event):
         self.SendText()
+        
+    def GetChatMsgWinSizePos(self, index):
+        '''control the position of new chat msg'''
+        w = 200
+        h = 32
+        y_dis = 7
+        x = win32gui.GetWindowRect(self.hwnd)[0]
+        y = win32gui.GetWindowRect(self.hwnd)[1] - (y_dis+h)*(index+1)
+        return w,h,x,y
+    
+    def GetNewChatMsgWinSizePos(self):
+        return self.GetChatMsgWinSizePos(len(self.chat_msg_win))
         
     def GetHistoryWindowPos(self):
         '''control the position of history window'''
@@ -423,6 +456,7 @@ class image_window:
         return True
     def OnDestroy(self, hwnd, message, wparam, lparam):
         '''
+        clean things here
         kill all tk things here
         '''
         with open(config_file, 'w') as file:
@@ -436,6 +470,9 @@ class image_window:
         except :pass
         try:turnOffTk(self.history_window)
         except :pass
+        for win in self.chat_msg_win:
+            try:turnOffTk(win)
+            except :pass
         self.after()
         
         self.actionThread = None
@@ -490,12 +527,10 @@ class image_window:
             img.append(imgTemp)
         self.SetImages(img)
         if acting:
-            self.acting = True
             self.actionThread = ChangeImageThread(self, repeating)
             self.actionThread.setDaemon(True)
             self.actionThread.start()
         else:
-            self.acting = False
             self.actionThread = None
     def showCharacter(self, skelFile):
         '''
@@ -533,11 +568,8 @@ class image_window:
         '''
         msg = self.chatmsg_queue.get()
         print('%s: %s'%(self.chat_name,msg))
-        self.showChatMsg(msg)
+        self.ShowNewChatMsgWin(msg)
 
-    def showChatMsg(self, msg):
-        pass
-    
     def getParentDirectory(self, path):
         #return os.path.abspath(os.path.join(path, os.pardir))
         path2 = path.split('/')
@@ -656,7 +688,12 @@ if __name__ == '__main__':
     '''
 
     win = image_window(lambda:win32gui.PostQuitMessage(0), '123', None, '111.111.111.111', 'data/cha/character1/character1.txt', '1')
-    win.showAction('data/cha/1/skeleton/send.txt')
+    def test(msg):
+        win.ShowNewChatMsgWin(msg)
+        print(msg,'thread ended')
+    
+    '''this test cause problems because of using tk in thread'''
+    threading.Thread(target=test, args=('Hello, World',)).start()
     #win.uploadCharacter()
     print('uploadCharacter done')
     win32gui.PumpMessages()
