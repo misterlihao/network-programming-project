@@ -426,9 +426,9 @@ class image_window:
             myThread.start()
             self.DoAfterConnectEstablished() 
         
-        mp.sendPacket(self.conn_socket, self.input_text.get().encode('utf8'))
+        '''mp.sendPacket(self.conn_socket, self.input_text.get().encode('utf8'))
         mt.SendAnime(self.conn_socket, self.tmp_anime)
-        self.this_messages.append(self.input_text.get())
+        self.this_messages.append(self.input_text.get())'''
         
         self.showAction(self.getActionPath('send.txt'))
         self.input_text.delete(0, tk.END)
