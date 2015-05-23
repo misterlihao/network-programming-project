@@ -4,12 +4,14 @@ packet_len_pack_pattern = 'Q'
 sizeBytes = 8
 
 def sendPacket(sock, bstr):
+	print(struct.pack(packet_len_pack_pattern, len(bstr)))
 	sock.send(struct.pack(packet_len_pack_pattern, len(bstr)))
 	sock.send(bstr)
 	recvBytes(sock, 1)
 
 def recvPacket(sock):
 	packet_len_bstr = recvBytes(sock, sizeBytes)
+	print(packet_len_bstr)
 	packet_len = struct.unpack(packet_len_pack_pattern, packet_len_bstr)[0]
 	bstr = recvBytes(sock, packet_len)
 	sock.send(b'0')
