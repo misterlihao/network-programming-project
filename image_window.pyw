@@ -311,18 +311,20 @@ class image_window:
         
     def ShowNewChatMsgWin(self, msg):
         '''show msg in a new bubble window'''
-        r = tk.Tk()
+        r = tk.Toplevel()
         r.overrideredirect(True)
         f = tk.Frame(r, bd=1,bg='black')
         var = tk.StringVar()
         l = tk.Label(f,bg='#bbddff', justify='center', fg='black', textvariable=var)
+        print(msg)
         var.set(msg)
         l.pack(fill='both',expand=True)
         f.pack(fill='both',expand=True)
         r.wm_attributes('-toolwindow',True, '-topmost', True)
         r.geometry('%dx%d+%d+%d'%self.GetNewChatMsgWinSizePos())
         self.chat_msg_win.append(r)
-        r.mainloop()
+        if self.speak_window == None:
+            self.ShowSpeakWindow()
         
     def InputTextHitReturn(self, event):
         self.SendText()
