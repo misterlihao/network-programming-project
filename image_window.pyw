@@ -128,6 +128,7 @@ class image_window:
         '''for selecting the anime to send'''
         self.tmp_anime=""      
         
+        self.tk_mainloop.withdraw()
         self.tk_mainloop.mainloop()
         
     def setConnectedSocket(self, sock):
