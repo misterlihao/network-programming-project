@@ -127,10 +127,12 @@ class image_window:
             self.DoAfterConnectEstablished()
         '''for selecting the anime to send'''
         self.tmp_anime=""      
-        
+        threading.Thread(target=self.runTkMainloop()).start()
+    
+    def runTkMainloop(self):
         self.tk_mainloop.withdraw()
         self.tk_mainloop.mainloop()
-        
+    
     def setConnectedSocket(self, sock):
         if self.conn_socket != None:
             raise Exception('set socket when connected')
@@ -451,7 +453,7 @@ class image_window:
         with open(history_file, 'a') as file:
             for each in self.this_messages:
                 file.write(each+'\n')
-       
+        
         try:turnOffTk(self.speak_window)
         except :pass
         try:turnOffTk(self.history_window)
