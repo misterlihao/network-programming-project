@@ -128,6 +128,7 @@ class image_window:
         if self.conn_socket != None:
             raise Exception('set socket when connected')
         self.conn_socket = sock
+        self.DoAfterConnectEstablished()
     
     def DoAfterConnectEstablished(self):  
         '''
