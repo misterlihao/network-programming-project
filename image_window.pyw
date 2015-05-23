@@ -533,15 +533,14 @@ class image_window:
         
         while True:
             try:
-                msg = mp.recvPacket(self.conn_socket)
+                msg, anime = mt.RecvMessageAndAnime(self.conn_socket)
                 if msg == b"":
                     raise Exception()
             except:
                 print('recv fail')
                 return
-            msg = msg.decode('utf8')
             '''send the message to next stage .Control the timing here'''
-            self.chatmsg_queue.put(msg)
+            self.chatmsg_queue.put((msg, anime))
             win32gui.SendMessage(self.hwnd, WM_CHATMSGRECV, 0, 0)
             
     def OnChatMessageReceived(self, hwnd, win32msg, wp, lp):
@@ -551,7 +550,7 @@ class image_window:
         
         maybe add histroy here
         '''
-        msg = self.chatmsg_queue.get()
+        msg, anime = self.chatmsg_queue.get()
         print('%s: %s'%(self.chat_name,msg))
         self.ShowNewChatMsgWin(msg)
 
