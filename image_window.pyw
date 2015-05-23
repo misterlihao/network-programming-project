@@ -40,7 +40,6 @@ def getXY(lparam):
 
 def turnOffTk(tk_object):
     tk_object.destroy()
-    tk_object.quit()
 
 def getCharacter(fileName):
     charFile = open(fileName, 'r')
@@ -102,6 +101,8 @@ class image_window:
         self.this_messages=[]
         '''for display'''
         self.chat_name = friend_name
+        '''TK mainloop unique'''
+        self.tk_mainloop = tk.Tk()
         
         self.history_window_width = 30 # in character
         '''callback function to be execute in ondestroy'''
@@ -126,7 +127,9 @@ class image_window:
             self.DoAfterConnectEstablished()
         '''for selecting the anime to send'''
         self.tmp_anime=""      
-    
+        
+        self.tk_mainloop.mainloop()
+        
     def setConnectedSocket(self, sock):
         if self.conn_socket != None:
             raise Exception('set socket when connected')
@@ -307,7 +310,6 @@ class image_window:
         
         self.input_text.focus()
         self.speak_window.geometry('+%d+%d' % self.GetSpeakWindowPos())
-        self.speak_window.mainloop()
         
     def ShowNewChatMsgWin(self, msg):
         '''show msg in a new bubble window'''
@@ -316,15 +318,12 @@ class image_window:
         f = tk.Frame(r, bd=1,bg='black')
         var = tk.StringVar()
         l = tk.Label(f,bg='#bbddff', justify='center', fg='black', textvariable=var)
-        print(msg)
         var.set(msg)
         l.pack(fill='both',expand=True)
         f.pack(fill='both',expand=True)
         r.wm_attributes('-toolwindow',True, '-topmost', True)
         r.geometry('%dx%d+%d+%d'%self.GetNewChatMsgWinSizePos())
         self.chat_msg_win.append(r)
-        if self.speak_window == None:
-            self.ShowSpeakWindow()
         
     def InputTextHitReturn(self, event):
         self.SendText()
@@ -388,8 +387,7 @@ class image_window:
         scrollbar.config(command=text.yview)
         '''set position and size, and then show it'''
         self.history_window.geometry('+%d+%d' % self.GetHistoryWindowPos())
-        self.history_window.mainloop()
-    
+        
     def SelectAnime(self):
         '''
         show anime list for user to choose, or hide it if it was shown.
@@ -463,7 +461,9 @@ class image_window:
         self.after()
         
         self.actionThread = None
+        self.tk_mainloop.quit()
         return True
+    
     def getCharFile(self):
         return self.charFile
     def showAction(self, skelFile, repeating = False, acting=True):
