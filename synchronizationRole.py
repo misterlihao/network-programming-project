@@ -78,8 +78,8 @@ def updataIfNeed(sock, myChafile, friendID, func, callbackFunc = None):
     friChadir = getParentDirectory(firChafile)
     myChadir = getParentDirectory(myChafile)
     if not checkCharVersion(sock, myChadir, friChadir):
-        mp.sendPack(sock, 'True'.encode('utf8')
-        data = recvPacket(sock).decode()
+        mp.sendPack(sock, 'True'.encode('utf8'))
+        data = mp.recvPacket(sock).decode()
         if data=='True':
             myThread = threading.Thread(target=uploadCharacter, args=(sock, myChadir))
             myThread.setDaemon(True)
