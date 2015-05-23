@@ -123,6 +123,7 @@ class FriendListItemView:
                 raise Exception('start chat when opened, without socket')
             else:
                 self.chat_win.setConnectedSocket(sock)
+                return
         
         win32gui.SetWindowText(self.chat_btn, 'close')
         self.chat_win = image_window(
