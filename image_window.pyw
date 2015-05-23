@@ -102,7 +102,7 @@ class image_window:
         '''for display'''
         self.chat_name = friend_name
         '''TK mainloop unique'''
-        self.tk_mainloop = tk.Tk()
+        self.tk_mainloop = None
         
         self.history_window_width = 30 # in character
         '''callback function to be execute in ondestroy'''
@@ -127,9 +127,9 @@ class image_window:
             self.DoAfterConnectEstablished()
         '''for selecting the anime to send'''
         self.tmp_anime=""      
-        threading.Thread(target=self.runTkMainloop()).start()
     
     def runTkMainloop(self):
+        self.tk_mainloop = tk.Tk()
         self.tk_mainloop.withdraw()
         self.tk_mainloop.mainloop()
     
