@@ -118,7 +118,7 @@ class FriendListItemView:
         above line is not truth anymore
         give a new socket to chat_win if chat_win is windowed
         '''
-        if win32gui.IsWindow(self.chat_win.hwnd):
+        if self.chat_win != None and win32gui.IsWindow(self.chat_win.hwnd):
             if sock == None:
                 raise Exception('start chat when opened, without socket')
             else:
