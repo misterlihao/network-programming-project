@@ -133,7 +133,7 @@ class FriendListItemView:
             self.model.ip, 
             self.getCharPath(self.model.friend_id)
             ,self.model.friend_id)
-        
+        print('character created')
         '''tricky!HACK! stuck here'''
         self.chat_win.runTkMainloop()
         

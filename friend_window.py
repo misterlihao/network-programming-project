@@ -160,6 +160,7 @@ class FriendWin:
         
         print('user', friend_list_item.model.friend_name, 'connected at', addr)
         friend_list_item.StartChat(sock)
+        print('chat started, character opened')
     
     def RefreashFriendStatusInThread(self):
         while True:
@@ -220,14 +221,20 @@ class FriendWin:
         sock.listen(2)
         while True:
             sc, scName= sock.accept()
+            print('update requested')
             friendID = None
             myChafile = None
             callbackfunc = None
             for each in self.friend_list_item_list:
                 if each.IpIsMe(scName[0]):
-                    friendID = each.model.friend_id
-                    myChafile = each.chat_win.myCharFile
-                    callbackfunc = each.chat_win.setChadisplay
+                    while True:#wait until window created
+                        try:
+                            friendID = each.model.friend_id
+                            myChafile = each.chat_win.myCharFile
+                            callbackfunc = each.chat_win.setChadisplay
+                            break
+                        except: 
+                            time.sleep(0.1)
                     break
             arg = (sc, myChafile, friendID, callbackfunc)
             threading.Thread(None, updataIfNeed, args=arg).start()

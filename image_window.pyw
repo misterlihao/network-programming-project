@@ -556,7 +556,7 @@ class image_window:
         maybe add histroy here
         '''
         msg, anime = self.chatmsg_queue.get()
-        print('%s: %s'%(self.chat_name,msg))
+        #print('%s: %s'%(self.chat_name,msg))
         self.ShowNewChatMsgWin(msg)
 
     def getParentDirectory(self, path):
