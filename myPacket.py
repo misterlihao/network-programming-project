@@ -13,6 +13,7 @@ def recvPacket(sock):
 	packet_len = struct.unpack(packet_len_pack_pattern, packet_len_bstr)[0]
 	bstr = recvBytes(sock, packet_len)
 	sock.send(b'0')
+	print('count:', len(bstr))
 	return bstr
 
 def recvBytes(sock, count):

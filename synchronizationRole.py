@@ -4,7 +4,7 @@ import threading
 import time
 import zipfile
 import threading
-import myPacket
+import myPacket as mp
 def getParentDirectory(path):
     path2 = path.split('/')
     temp=''
@@ -16,8 +16,9 @@ def getParentDirectory(path):
 
 def checkCharVersion(sock, myChadir, friChadir):
     text = str(getCharDataSize(myChadir))
-    mp.sendPack(sock, text.encode('utf8'))
-    data = recvPacket(sock).decode('utf8')
+    print(text)
+    mp.sendPacket(sock, text.encode('utf8'))
+    data = mp.recvPacket(sock).decode('utf8')
     if cmpCharVersion(getCharDataSize(friChadir), int(data)):
         return True
     return False
@@ -40,7 +41,7 @@ def updateCharacter(sock, friChadir, friendID, func):
     fileName = friendID+'.zip'
     with open(fileName, 'wb') as cfile:
         while True:
-            data = recvPacket(sock)
+            data = mp.recvPacket(sock)
             if data == b'EOF':
                 break
             cfile.write(data)
@@ -67,10 +68,10 @@ def uploadCharacter(sock, myChadir):
             data = file.read(4096)
             if not data:
                 break
-            mp.sendPack(sock, data)
+            mp.sendPacket(sock, data)
             
     time.sleep(1) # delete after send in fixed len
-    mp.sendPack(sock, b'EOF')
+    mp.sendPacket(sock, b'EOF')
     os.remove(sfileName)
     
 def updataIfNeed(sock, myChafile, friendID, func, callbackFunc = None):  
@@ -78,8 +79,8 @@ def updataIfNeed(sock, myChafile, friendID, func, callbackFunc = None):
     friChadir = getParentDirectory(firChafile)
     myChadir = getParentDirectory(myChafile)
     if not checkCharVersion(sock, myChadir, friChadir):
-        mp.sendPack(sock, 'True'.encode('utf8')
-        data = recvPacket(sock).decode()
+        mp.sendPacket(sock, 'True'.encode('utf8'))
+        data = mp.recvPacket(sock).decode('utf8')
         if data=='True':
             myThread = threading.Thread(target=uploadCharacter, args=(sock, myChadir))
             myThread.setDaemon(True)
@@ -87,8 +88,8 @@ def updataIfNeed(sock, myChafile, friendID, func, callbackFunc = None):
             #uploadCharacter(sock, myChadir)
         updateCharacter(sock, friChadir, friendID, func)
     else:
-        mp.sendPack(sock, 'False'.encode('utf8'))
-        data = recvPacket(sock).decode()
+        mp.sendPacket(sock, 'False'.encode('utf8'))
+        data = mp.recvPacket(sock).decode()
         if data == 'True':
             uploadCharacter(sock, myChadir)
     if callbackFunc != None:

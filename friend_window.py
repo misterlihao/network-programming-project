@@ -223,11 +223,11 @@ class FriendWin:
             friendID = None
             myChafile = None
             callbackfunc = None
-            for list in self.friend_list_item_list:
-                if list.IpIsMe(scName[0]):
-                    friendID = list.friend_id
-                    myChafile = list.chat_win.myCharFile
-                    callbackfunc = list.chat_win.setChadisplay
+            for each in self.friend_list_item_list:
+                if each.IpIsMe(scName[0]):
+                    friendID = each.model.friend_id
+                    myChafile = each.chat_win.myCharFile
+                    callbackfunc = each.chat_win.setChadisplay
                     break
             arg = (sc, myChafile, friendID, callbackfunc)
             threading.Thread(None, updataIfNeed, args=arg).start()
