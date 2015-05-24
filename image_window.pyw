@@ -219,7 +219,7 @@ class image_window:
     def OnLButtonUp(self, hwnd, message, wparam, lparam):
         '''2.Click on image_window so send i read the message'''
         if self.receive_message_read == False: #if there are messages not read, now is reading
-            mt.SendMessageAndAnime(self.conn_socket, '', 'read2') # tell I read it
+            mt.SendMessageAndAnime(self.conn_socket, '', 'read2.txt') # tell I read it
             self.receive_message_read=True #no message not read
             
         if self.drag_showing == False:
@@ -550,10 +550,10 @@ class image_window:
             try:
                 msg, anime = mt.RecvMessageAndAnime(self.conn_socket)
                 '''3.if receive a readCheck confirm'''
-                if msg == b"" and anime == b"checked":  #receive a readCheck
+                if msg == b"" and anime == b"read2.txt":  #receive a readCheck
                     self.sended_message_read = True #no need but on logical
                     self.showAction(self.getActionPath('read2.txt')) #show message read animation
-                    return
+                    continue
                 else: self.receive_message_read = False #received a normal message but not readCheck, control to send when next click
             except:
                 print('recv fail')
