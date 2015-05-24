@@ -571,8 +571,10 @@ class image_window:
         '''
         msg, anime = self.chatmsg_queue.get()
         #print('%s: %s'%(self.chat_name,msg))
-        self.ShowNewChatMsgWin(msg)
-        self.showAction(self.getActionPath(anime))
+        if msg != '':
+            self.ShowNewChatMsgWin(msg)
+        if anime != '':
+            self.showAction(self.getActionPath(anime))
 
     def getParentDirectory(self, path):
         #return os.path.abspath(os.path.join(path, os.pardir))
