@@ -570,7 +570,7 @@ class image_window:
         maybe add histroy here
         '''
         msg, anime = self.chatmsg_queue.get()
-        #print('%s: %s'%(self.chat_name,msg))
+        self.this_messages.append(msg)
         if msg != '':
             self.ShowNewChatMsgWin(msg)
         if anime != '':

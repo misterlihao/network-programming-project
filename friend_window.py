@@ -47,7 +47,7 @@ class FriendWin:
         '''index of frist friend in self.friend_list'''
         self.friend_first_index = 0
         '''index of frist friend in self.friend_list'''
-        self.friend_list_len = 3
+        self.friend_list_len = 4
         '''create child windows of friends'''
         
         cn = self.RegisterClass()
