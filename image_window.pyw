@@ -409,7 +409,7 @@ class image_window:
             self.anime_lb = None
             self.tmp_anime = ''
         else:
-            anime_list = ['anime 1','anime 2']
+            anime_list = self.getSelfActionList()
             self.anime_lb = tk.Listbox(self.speak_window, height = len(anime_list))
             self.anime_lb.bind("<<ListboxSelect>>", self.OnSelect)
             for i in range(len(anime_list)):
@@ -572,6 +572,7 @@ class image_window:
         msg, anime = self.chatmsg_queue.get()
         #print('%s: %s'%(self.chat_name,msg))
         self.ShowNewChatMsgWin(msg)
+        self.showAction(self.getActionPath(anime))
 
     def getParentDirectory(self, path):
         #return os.path.abspath(os.path.join(path, os.pardir))
@@ -652,6 +653,11 @@ class image_window:
     def getActionPath(self, action_filename):
         path = self.getParentDirectory(self.charFile)
         return path + '/skeleton/'+action_filename
+    
+    def getSelfActionList(self):
+        path = self.getParentDirectory(self.myCharFile) + '/skeleton/'
+        anime_list = [f for f in os.listdir(path) if os.path.splitext(f)[1]=='.txt']
+        return anime_list
     
     def callbackfunc(self):
         print('callback')
