@@ -82,6 +82,10 @@ class FriendWin:
         myThread.setDaemon(True)
         myThread.start()
         
+        self.tk_mainloop = tk.Tk()
+        self.tk_mainloop.withdraw()
+        self.tk_mainloop.mainloop()
+        
     def RegisterClass(self):
         className = "friend_window"
         wc = win32gui.WNDCLASS()
@@ -211,6 +215,8 @@ class FriendWin:
                 each.edit_window.quit()
             except:pass
         self.friend_list.Save()
+        self.tk_mainloop.destroy()
+        self.tk_mainloop.quit()
         win32gui.DestroyMenu(self.menubar)
         win32gui.PostQuitMessage(0)
         return win32gui.DefWindowProc(hwnd, msg, wp, lp)
@@ -225,6 +231,7 @@ class FriendWin:
             friendID = None
             myChafile = None
             callbackfunc = None
+            print(scName[0])
             for each in self.friend_list_item_list:
                 if each.IpIsMe(scName[0]):
                     while True:#wait until window created
@@ -263,7 +270,7 @@ class OpenAddFriendWindow:
         self.button_panes.add(self.button_for_close) 
         self.button_panes.add(self.button_for_add)
         self.root.geometry('+%d+%d'% (x,y))
-        self.root.mainloop()
+#         self.root.mainloop()
         
     def CommitEntry(self, new_friend_list):
         ip = self.entry_for_ip.get()
@@ -278,12 +285,6 @@ if __name__ == '__main__':
     mainwin = FriendWin()
     
     '''play as a remote user to test recving functions'''
-    def test(*args):
-        pass
-        
-    th=threading.Thread(target=test)
-    th.setDaemon(True)
-    th.start()
     
     # end win32 windows
     win32gui.PumpMessages()

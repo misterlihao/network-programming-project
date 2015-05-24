@@ -135,7 +135,6 @@ class FriendListItemView:
             ,self.model.friend_id)
         print('character created')
         '''tricky!HACK! stuck here'''
-        self.chat_win.runTkMainloop()
         
     def getCharPath(self, id):
         return 'data/cha/'+id+'/character1.txt'

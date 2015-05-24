@@ -131,11 +131,6 @@ class image_window:
         '''for selecting the anime to send'''
         self.tmp_anime=""      
     
-    def runTkMainloop(self):
-        self.tk_mainloop = tk.Tk()
-        self.tk_mainloop.withdraw()
-        self.tk_mainloop.mainloop()
-    
     def setConnectedSocket(self, sock):
         if self.conn_socket != None:
             raise Exception('set socket when connected')
@@ -195,7 +190,8 @@ class image_window:
     
     def GetCurrentImageRemainTime(self):
         return self.image_remain_times[self.image_index]
-    
+    def MoveTo(self, x, y):
+        win32gui.SetWindowPos(self.hwnd, 0, x, y, 0, 0, win32con.SWP_NOSIZE|win32con.SWP_NOOWNERZORDER)
     def GoOnTop(self):
         win32gui.SetWindowPos(self.hwnd, win32con.HWND_TOP, 0, 0, 0, 0, win32con.SWP_NOMOVE|win32con.SWP_NOSIZE)
     def StayTop(self):
@@ -249,7 +245,7 @@ class image_window:
             rect = win32gui.GetWindowRect(self.hwnd)
             x, y = rect[0], rect[1]
             
-            win32gui.SetWindowPos(self.hwnd, 0, x+dx, y+dy, 0, 0, win32con.SWP_NOSIZE|win32con.SWP_NOOWNERZORDER)
+            self.MoveTo(x+dx, y+dy)
         return True
     def OnRButtonUp(self, hwnd, message, wparam, lparam):
         menu = win32gui.CreatePopupMenu()
@@ -472,9 +468,6 @@ class image_window:
             try:turnOffTk(win)
             except :pass
         self.after()
-        
-        self.actionThread = None
-        self.tk_mainloop.quit()
         return True
     
     def getCharFile(self):
