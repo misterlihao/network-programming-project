@@ -550,7 +550,7 @@ class image_window:
             try:
                 msg, anime = mt.RecvMessageAndAnime(self.conn_socket)
                 '''3.if receive a readCheck confirm'''
-                if msg == b"" and anime == b"read2.txt":  #receive a readCheck
+                if msg == "" and anime == "read2.txt":  #receive a readCheck
                     self.sended_message_read = True #no need but on logical
                     self.showAction(self.getActionPath('read2.txt')) #show message read animation
                     continue
