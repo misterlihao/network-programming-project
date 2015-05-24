@@ -122,6 +122,9 @@ class image_window:
         self.chat_msg_win = []
         
         self.showAction(self.getActionPath('idle.txt'), True)
+        '''for read cheack'''
+        self.receive_message_read = True #no not yet read received message
+        self.sended_message_read = True #he/she already read message
         
         if self.conn_socket != None:
             self.DoAfterConnectEstablished()
@@ -214,6 +217,11 @@ class image_window:
         return True
     
     def OnLButtonUp(self, hwnd, message, wparam, lparam):
+        '''2.Click on image_window so send i read the message'''
+        if self.receive_message_read == False: #if there are messages not read, now is reading
+            mt.SendMessageAndAnime(self.conn_socket, 'read', 'checked') # tell I read it
+            self.receive_message_read=True #no message not read
+            
         if self.drag_showing == False:
             self.showAction(self.getActionPath('click.txt'))
         else:
@@ -431,6 +439,8 @@ class image_window:
         
         mt.SendMessageAndAnime(self.conn_socket, self.input_text.get(), self.tmp_anime)
         self.this_messages.append(self.input_text.get())
+        '''1.send new message so readCheck set to False'''
+        self.sended_message_read = False #no need but on logical
         
         self.showAction(self.getActionPath('send.txt'))
         self.input_text.delete(0, tk.END)
@@ -541,6 +551,11 @@ class image_window:
                 msg, anime = mt.RecvMessageAndAnime(self.conn_socket)
                 if msg == b"":
                     raise Exception()
+                '''3.if receive a readCheck confirm'''
+                if msg == b"read" and anime == b"checked":  #receive a readCheck
+                    self.sended_message_read = True #no need but on logical
+                    self.showAction('data/cha/5/character1.txt') #show message read animation
+                else: self.receive_message_read = False #received a normal message but not readCheck, control to send when next click
             except:
                 print('recv fail')
                 return
