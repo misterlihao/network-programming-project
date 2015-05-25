@@ -77,6 +77,7 @@ class image_window:
           win32con.WM_LBUTTONDOWN: self.OnLButtonDown,
           win32con.WM_LBUTTONUP: self.OnLButtonUp,
           win32con.WM_MOVE: self.OnMove,
+          win32con.WM_SIZE:self.OnSize,
           win32con.WM_MOUSEMOVE: self.OnMouseMove,
           win32con.WM_PAINT: self.OnPaint,
           win32con.WM_RBUTTONUP: self.OnRButtonUp,
@@ -120,6 +121,8 @@ class image_window:
         self.chatmsg_queue = queue.Queue()
         '''the chat msg window showing'''
         self.chat_msg_win = []
+        '''the sent msg window showing'''
+        self.sent_msg_win = None
         
         self.showAction(self.getActionPath('idle.txt'), True)
         '''for read cheack'''
@@ -284,13 +287,26 @@ class image_window:
         called when window is moved.
         control things here
         '''
+        self.SetAttachedWinPos()
+        return win32gui.DefWindowProc(hwnd, message, wparam, lparam)
+    
+    def OnSize(self, hwnd, message, wparam, lparam):
+        '''
+        called when window is resized.
+        control things here
+        '''
+        self.SetAttachedWinPos()
+        return win32gui.DefWindowProc(hwnd, message, wparam, lparam)
+    
+    def SetAttachedWinPos(self):
         try:self.speak_window.geometry('+%d+%d' % self.GetSpeakWindowPos())
         except :pass
         for i in range(len(self.chat_msg_win)):
             try:self.chat_msg_win[i].geometry('%dx%d+%d+%d' % self.GetChatMsgWinSizePos(i))
             except :pass
-        return win32gui.DefWindowProc(hwnd, message, wparam, lparam)
-        
+        try:self.sent_msg_win.geometry('%dx%d+%d+%d' % self.GetSentMsgWinSizePos())
+        except :pass
+    
     def GetSpeakWindowPos(self):
         '''control the position of speaking window'''
         x = win32gui.GetWindowRect(self.hwnd)[0]
@@ -331,6 +347,22 @@ class image_window:
         r.wm_attributes('-toolwindow',True, '-topmost', True)
         r.geometry('%dx%d+%d+%d'%self.GetNewChatMsgWinSizePos())
         self.chat_msg_win.append(r)
+    
+    def showSentChatMsgWin(self, msg):
+        r = tk.Toplevel()
+        r.overrideredirect(True)
+        f = tk.Frame(r, bd=1,bg='black')
+        var = tk.StringVar()
+        l = tk.Label(f,bg='#bbddff', justify='center', fg='black', textvariable=var)
+        var.set(msg)
+        l.pack(fill='both',expand=True)
+        f.pack(fill='both',expand=True)
+        r.wm_attributes('-toolwindow',True, '-topmost', True)
+        r.geometry('%dx%d+%d+%d'%self.GetSentMsgWinSizePos())
+        try:
+            self.sent_msg_win.destroy()
+        except:pass
+        self.sent_msg_win = r
         
     def InputTextHitReturn(self, event):
         self.SendText()
@@ -342,6 +374,16 @@ class image_window:
         y_dis = 7
         x = win32gui.GetWindowRect(self.hwnd)[0]
         y = win32gui.GetWindowRect(self.hwnd)[1] - (y_dis+h)*(index+1)
+        return w,h,x,y
+    
+    def GetSentMsgWinSizePos(self):
+        w = 200
+        h = 32
+        y_dis = 7
+        x_dis = 10
+        rect = win32gui.GetWindowRect(self.hwnd) 
+        x = rect[2] + x_dis
+        y = (rect[3]+rect[1])//2
         return w,h,x,y
     
     def GetNewChatMsgWinSizePos(self):
@@ -420,10 +462,11 @@ class image_window:
         
     def SendText(self):
         '''
-        SendText to remote chatter'''
+        SendText to remote chatter
+        '''
         '''get the speak_window handle'''
         speak_window_hwnd = win32gui.GetForegroundWindow()
-        if self.conn_socket == None:
+        '''if self.conn_socket == None:
             self.conn_socket = mt.StartTalking(self.ip)
             if self.conn_socket == None:
                 return 
@@ -433,10 +476,12 @@ class image_window:
             myThread.start()
             self.DoAfterConnectEstablished() 
         
-        mt.SendMessageAndAnime(self.conn_socket, self.input_text.get(), self.tmp_anime)
-        self.this_messages.append(self.input_text.get())
+        mt.SendMessageAndAnime(self.conn_socket, self.input_text.get(), self.tmp_anime)'''
+        msg = self.input_text.get()
+        self.this_messages.append(msg)
         '''1.send new message so readCheck set to False'''
         self.sended_message_read = False #no need but on logical
+        self.showSentChatMsgWin(msg)
         
         self.showAction(self.getActionPath('send.txt'))
         self.input_text.delete(0, tk.END)
@@ -546,6 +591,7 @@ class image_window:
                 if msg == "" and anime == "checked":  #receive a readCheck
                     self.sended_message_read = True #no need but on logical
                     self.showAction(self.getActionPath('read2.txt')) #show message read animation
+                    self.sent_msg_win.destroy()
                     continue
                 else: self.receive_message_read = False #received a normal message but not readCheck, control to send when next click
             except:
