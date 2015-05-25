@@ -146,7 +146,6 @@ class FriendWin:
                 OpenAddFriendWindow(point[0], point[1], new_friend_list)
                 for each in new_friend_list:
                     self.friend_list.AddNewFriend(each[0], each[1], each[2]) #ip, name, email
-                    print(each)
                 
         
     def OnSysCommand(self, hwnd, msg, wp, lp):
@@ -293,12 +292,14 @@ class OpenAddFriendWindow:
         self.button_panes.add(self.button_for_close) 
         self.button_panes.add(self.button_for_add)
         self.root.geometry('+%d+%d'% (x,y))
+        self.root.mainloop()
         
     def CommitEntry(self, new_friend_list):
         ip = self.entry_for_ip.get()
         name = self.entry_for_name.get()
         email = self.entry_for_eamil.get()
         new_friend_list.append((ip, name, email))
+        print(ip, name, email)
         
     def Destroy(self):
         self.root.destroy()
