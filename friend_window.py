@@ -32,6 +32,7 @@ class FriendWin:
           win32con.WM_SYSCOMMAND: self.OnSysCommand,
           win32con.WM_COMMAND: self.OnCommand,
           win32con.WM_MOUSEWHEEL: self.OnMouseWheel,
+          win32con.WM_SIZE: self.OnSize,
           WM_CONNACCEPTED: self.OnConnAccepted,
           WM_FRIENDREFRESHED: self.OnFriendRefreshed,
         }
@@ -102,7 +103,7 @@ class FriendWin:
         return className
 
     def BuildWindow(self, className):
-        style = win32con.WS_OVERLAPPEDWINDOW &~ win32con.WS_THICKFRAME
+        style = win32con.WS_OVERLAPPEDWINDOW
         w=250
         h=500
             
@@ -117,6 +118,22 @@ class FriendWin:
         win32gui.AppendMenu(self.menubar, win32con.MF_STRING, 2, 'add new friend')
         win32gui.SetMenu(self.hwnd, self.menubar)
     
+    def OnSize(self, hwnd, msg, wp, lp):
+        '''get client w, h'''
+        w, h = win32api.LOWORD(lp), win32api.HIWORD(lp)
+        if h != self.friend_list_len*24:
+            '''resize the height if needed'''
+            winRect = win32gui.GetWindowRect(hwnd)
+            winW = winRect[2]-winRect[0]
+            winH = (winRect[3]-winRect[1]-h)+self.friend_list_len*24
+            win32gui.SetWindowPos(self.hwnd, 0, 0, 0, winW, winH, win32con.SWP_NOMOVE|win32con.SWP_NOOWNERZORDER)
+        else:
+            for i in range(len(self.friend_list_item_list)):
+                list_item = self.friend_list_item_list[i]
+                itemH = h//self.friend_list_len
+                win32gui.SetWindowPos(list_item.hwnd, 0, 0, i*itemH, w, itemH, win32con.SWP_NOOWNERZORDER)
+        return True
+        
     def OnCommand(self, hwnd, msg, wp, lp):
         if win32api.HIWORD(wp) == 0: #menu command
             menu_id = win32api.LOWORD(wp)
