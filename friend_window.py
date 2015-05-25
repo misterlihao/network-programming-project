@@ -105,7 +105,7 @@ class FriendWin:
         style = win32con.WS_OVERLAPPEDWINDOW &~ win32con.WS_THICKFRAME
         w=250
         h=500
-        
+            
         self.hwnd = win32gui.CreateWindow(
                              className,
                              "freind list", style,
@@ -128,7 +128,9 @@ class FriendWin:
                 point = win32gui.GetCursorPos()
                 OpenAddFriendWindow(point[0], point[1], new_friend_list)
                 for each in new_friend_list:
-                    self.friend_list.AddNewFriend(each[0], each[1], each[4]) #ip, name, email
+                    self.friend_list.AddNewFriend(each[0], each[1], each[2]) #ip, name, email
+                    print(each)
+                
         
     def OnSysCommand(self, hwnd, msg, wp, lp):
         '''win32 callback, edit to control
@@ -259,11 +261,15 @@ class OpenAddFriendWindow:
         self.entry_for_ip = tk.Entry(self.input_panes, width=10)
         self.lable_for_name = tk.Label(self.input_panes, text='name:')
         self.entry_for_name = tk.Entry(self.input_panes, width=10)
+        self.lable_for_eamil = tk.Label(self.input_panes, text='email:')
+        self.entry_for_eamil = tk.Entry(self.input_panes, width=15)
         self.input_panes.add(self.lable_for_ip)
         self.input_panes.add(self.entry_for_ip)
         self.input_panes.add(self.lable_for_name)
         self.input_panes.add(self.entry_for_name)
-        self.button_panes = tk.PanedWindow(orient=tk.HORIZONTAL, width=15)
+        self.input_panes.add(self.lable_for_eamil)
+        self.input_panes.add(self.entry_for_eamil)
+        self.button_panes = tk.PanedWindow(self.root,orient=tk.HORIZONTAL, width=15)
         self.button_panes.pack(fill=BOTH, expand=1)
         self.button_for_add = tk.Button(self.button_panes, text="Add this friend", command=lambda: self.CommitEntry(new_friend_list))
         self.button_for_close = tk.Button(self.button_panes, text="Exit", command=self.Destroy, width=5)
@@ -274,7 +280,8 @@ class OpenAddFriendWindow:
     def CommitEntry(self, new_friend_list):
         ip = self.entry_for_ip.get()
         name = self.entry_for_name.get()
-        new_friend_list.append((ip, name))
+        email = self.entry_for_eamil.get()
+        new_friend_list.append((ip, name, email))
         
     def Destroy(self):
         self.root.destroy()

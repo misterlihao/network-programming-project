@@ -1,4 +1,6 @@
 from online_check import *
+import os
+import shutil, errno
 class FriendList:
     '''
     form of items = [ip, name, status, id, email]
@@ -58,9 +60,12 @@ class FriendList:
     def AddNewFriend(self,ip, name, email):
         '''
         '''
-        self.ip_name_status_list.append([ip, name, False, self.id_max+1], email)
+        self.ip_name_status_list.append([ip, name, False, self.id_max+1, email])
         self.id_max += 1
-        pass
+        folder_path = 'data/cha/' + str(self.id_max) 
+        #if not os.path.exists(folder_path):
+        #    os.makedirs(folder_path)
+        copyanything('data/cha/'+str(self.id_max-1), folder_path)
     
     def __len__(self):
         return len(self.ip_name_status_list)
@@ -74,3 +79,11 @@ class FriendList:
         '''
         for item in self.ip_name_status_list:
             yield item
+            
+def copyanything(src, dst):
+    try:
+        shutil.copytree(src, dst)
+    except OSError as exc:
+        if exc.errno == errno.ENOTDIR:
+            shutil.copy(src, dst)
+        else: raise
