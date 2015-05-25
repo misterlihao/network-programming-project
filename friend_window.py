@@ -213,7 +213,6 @@ class FriendWin:
             except:pass
             try:
                 each.edit_window.destroy()
-                each.edit_window.quit()
             except:pass
         self.friend_list.Save()
         self.tk_mainloop.destroy()
@@ -254,7 +253,7 @@ class OpenAddFriendWindow:
         '''
         self.root = tk.Tk()
         self.root.title('add new friend')
-        self.input_panes = tk.PanedWindow(orient=tk.HORIZONTAL)
+        self.input_panes = tk.PanedWindow(self.root,orient=tk.HORIZONTAL)
         self.input_panes.pack(fill=BOTH, expand=1)
         self.lable_for_ip = tk.Label(self.input_panes, text='ip:')
         self.entry_for_ip = tk.Entry(self.input_panes, width=10)
@@ -271,7 +270,6 @@ class OpenAddFriendWindow:
         self.button_panes.add(self.button_for_close) 
         self.button_panes.add(self.button_for_add)
         self.root.geometry('+%d+%d'% (x,y))
-#         self.root.mainloop()
         
     def CommitEntry(self, new_friend_list):
         ip = self.entry_for_ip.get()

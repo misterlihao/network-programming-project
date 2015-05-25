@@ -175,7 +175,6 @@ class FriendListItemView:
         if item_id == 1:
             try:
                 self.edit_window.destroy()
-                self.edit_window.quit()
                 self.edit_window = None
             except Exception:
                 self.ShowEditWindow()
@@ -206,7 +205,6 @@ class FriendListItemView:
         frame.pack()
         
         self.edit_window.geometry('+%d+%d' % self.GetEditWindowPos())
-        self.edit_window.mainloop()
         
     def SwitchToInputName(self):
         '''
