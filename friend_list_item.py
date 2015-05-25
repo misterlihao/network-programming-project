@@ -65,6 +65,7 @@ class FriendListItemView:
             win32con.WM_DESTROY: self.OnDestroy,
             win32con.WM_COMMAND: self.OnCommand,
             win32con.WM_PAINT: self.OnPaint,
+            win32con.WM_SIZE: self.OnSize,
             win32con.WM_RBUTTONUP: self.OnRButtonUp,
         }
         win32gui.SetWindowLong(self.hwnd, win32con.GWL_WNDPROC, self.message_map)
@@ -75,8 +76,12 @@ class FriendListItemView:
             w-70, 0, 70, 24, self.hwnd, _id,
             win32gui.GetModuleHandle(None),
             None)
-        self.friend_window_class = friend_window_object
-
+        self.friend_window = friend_window_object
+    
+    def OnSize(self, hwnd, msg, wp, lp):
+        w, h = win32api.LOWORD(lp), win32api.HIWORD(lp)
+        win32gui.SetWindowPos(self.chat_btn, 0, w-h*3, 0, h*3, h, win32con.SWP_NOZORDER)
+        
     def SetFriendData(self, friend_data):
         '''friend_data: a list of form in friendList'''
         self.model.set(*friend_data)
@@ -111,6 +116,8 @@ class FriendListItemView:
             win32gui.DeleteObject(brush)
         
         win32gui.EndPaint(hwnd, ps)
+        return True
+    
     def StartChat(self, sock=None):
         '''
         Create a image_window here
@@ -233,19 +240,19 @@ class FriendListItemView:
     def CommitChange(self):
         if (self.input_mode==1):
             '''self.model.ip still have old ip'''
-            self.friend_window_class.friend_list.ChangeFriendIp(self.model.friend_id, self.input_text.get())
+            self.friend_window.friend_list.ChangeFriendIp(self.model.friend_id, self.input_text.get())
             self.model.ip = self.input_text.get()
             self.input_text.delete(0, tk.END)
             self.input_text.insert(0, 'friend\'s ip changed!')
         elif (self.input_mode==0):
             '''self.model.name still have old name'''
-            self.friend_window_class.friend_list.ChangeFriendName(self.model.friend_id, self.input_text.get())
+            self.friend_window.friend_list.ChangeFriendName(self.model.friend_id, self.input_text.get())
             self.model.friend_name = self.input_text.get()
             self.input_text.delete(0, tk.END)
             self.input_text.insert(0, 'friend\'s name changed!')
         elif (self.input_mode==2):
             '''self.model.email still have old email'''
-            self.friend_window_class.friend_list.ChangeFriendEmail(self.model.friend_id, self.input_text.get())
+            self.friend_window.friend_list.ChangeFriendEmail(self.model.friend_id, self.input_text.get())
             self.model.email = self.input_text.get()
             self.input_text.delete(0, tk.END)
             self.input_text.insert(0, 'friend\'s email changed!')
