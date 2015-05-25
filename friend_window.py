@@ -299,7 +299,6 @@ class OpenAddFriendWindow:
         name = self.entry_for_name.get()
         email = self.entry_for_eamil.get()
         new_friend_list.append((ip, name, email))
-        print(ip, name, email)
         
     def Destroy(self):
         self.root.destroy()
