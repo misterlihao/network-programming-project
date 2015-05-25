@@ -61,7 +61,8 @@ class FriendWin:
             name = self.friend_list[i][1]
             ip = self.friend_list[i][0]
             friend_id = self.friend_list[i][3]
-            fli = FLI.create(self, ip, name, friend_id, 0, 24*i, rect[2], 24)
+            email = self.friend_list[i][4]
+            fli = FLI.create(self, ip, name, friend_id, email, 0, 24*i, rect[2], 24)
             self.friend_list_item_list.append(fli)
         
         win32gui.ShowWindow(self.hwnd, win32con.SW_NORMAL)
@@ -127,7 +128,7 @@ class FriendWin:
                 point = win32gui.GetCursorPos()
                 OpenAddFriendWindow(point[0], point[1], new_friend_list)
                 for each in new_friend_list:
-                    self.friend_list.AddNewFriend(each[0], each[1])
+                    self.friend_list.AddNewFriend(each[0], each[1], each[4]) #ip, name, email
         
     def OnSysCommand(self, hwnd, msg, wp, lp):
         '''win32 callback, edit to control

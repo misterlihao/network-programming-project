@@ -31,26 +31,27 @@ class Model:
     '''
     for data storage
     '''
-    def __init__(self, ip, friend_name, online, id):
-        self.set(friend_name, ip, online, id)
+    def __init__(self, ip, friend_name, online, id, email):
+        self.set(friend_name, ip, online, id, email)
     
-    def set(self, ip, friend_name, online, id):
+    def set(self, ip, friend_name, online, id, email):
         self.friend_name = friend_name
         self.online = online
         self.friend_id = id
         self.ip = ip
+        self.email = email
     
 class FriendListItemView:
     '''
     window of friend list item
     '''
-    def __init__(self, friend_window_object, _id, friend_name, ip, friend_id, w, h):
+    def __init__(self, friend_window_object, _id, friend_name, ip, friend_id, friend_email, w, h):
         '''
         _id is it's win32 id
         friend_name stores the name of the friend it represents
         ip is the friend's address
         '''
-        self.model = Model(ip, friend_name, False, friend_id)
+        self.model = Model(ip, friend_name, False, friend_id, friend_email)
         self.id = _id
         self.chat_win = None
         self.hwnd = win32gui.CreateWindow(
@@ -166,7 +167,7 @@ class FriendListItemView:
     
     def OnRButtonUp(self, hwnd, message, wparam, lparam):
         menu = win32gui.CreatePopupMenu()
-        win32gui.AppendMenu(menu, win32con.MF_STRING, 1, 'change name/ip')
+        win32gui.AppendMenu(menu, win32con.MF_STRING, 1, 'change name/ip/email')
         x, y = getXY(lparam)
         x, y = win32gui.ClientToScreen(hwnd, (x, y))
         '''show the popup menu, 0x100 means return item id right after'''
@@ -196,6 +197,8 @@ class FriendListItemView:
         self.SwitchToInputName()
         change_btn = tk.Button(frame, text='change', comman=self.CommitChange)
         change_btn.pack(side='right')
+        email_btn = tk.Button(frame, text='email', command=self.SwitchToInputEmail)
+        email_btn.pack(side='right')
         ip_btn = tk.Button(frame, text='ip', command=self.SwitchToInputIp)
         ip_btn.pack(side='right')
         name_btn = tk.Button(frame, text='name', command=self.SwitchToInputName)
@@ -221,19 +224,33 @@ class FriendListItemView:
         self.input_text.delete(0, tk.END)
         self.input_text.insert(0, self.model.ip)
         
+    def SwitchToInputEmail(self):
+        '''
+        switch entry to email inputting
+        '''
+        self.input_mode = 2
+        self.input_text.delete(0, tk.END)
+        self.input_text.insert(0, self.model.email)     
+        
     def CommitChange(self):
         if (self.input_mode==1):
-            '''self.model.ip still have old name'''
-            self.friend_window_class.friend_list.ChangeFriendIp(self.model.friend_name, self.input_text.get())
+            '''self.model.ip still have old ip'''
+            self.friend_window_class.friend_list.ChangeFriendIp(self.model.friend_id, self.input_text.get())
             self.model.ip = self.input_text.get()
             self.input_text.delete(0, tk.END)
             self.input_text.insert(0, 'friend\'s ip changed!')
-        else:
-            '''self.model.name still have old ip'''
-            self.friend_window_class.friend_list.ChangeFriendName(self.model.friend_name, self.input_text.get())
+        elif (self.input_mode==0):
+            '''self.model.name still have old name'''
+            self.friend_window_class.friend_list.ChangeFriendName(self.model.friend_id, self.input_text.get())
             self.model.friend_name = self.input_text.get()
             self.input_text.delete(0, tk.END)
             self.input_text.insert(0, 'friend\'s name changed!')
+        elif (self.input_mode==2):
+            '''self.model.email still have old email'''
+            self.friend_window_class.friend_list.ChangeFriendEmail(self.model.friend_id, self.input_text.get())
+            self.model.email = self.input_text.get()
+            self.input_text.delete(0, tk.END)
+            self.input_text.insert(0, 'friend\'s email changed!')
         win32gui.InvalidateRect(self.hwnd, None, True)
         
     def GetEditWindowPos(self):
@@ -243,7 +260,7 @@ class FriendListItemView:
         return x,y
     
 item_id_acc = 0
-def create(friend_window_object, friend_name, ip, friend_id, x, y, w, h):
+def create(friend_window_object, friend_name, ip, friend_id, email, x, y, w, h):
     '''
     return a item window
     should have a parent at creation moment,
@@ -253,7 +270,7 @@ def create(friend_window_object, friend_name, ip, friend_id, x, y, w, h):
     item_id = item_id_acc
     item_id_acc += 1
     
-    view = FriendListItemView(friend_window_object, item_id, friend_name,ip, friend_id, w, h)
+    view = FriendListItemView(friend_window_object, item_id, friend_name,ip, friend_id, email, w, h)
     win32gui.SetWindowPos(view.hwnd, win32con.HWND_TOP, x, y, w, h, win32con.SWP_NOOWNERZORDER)
     return view
         
