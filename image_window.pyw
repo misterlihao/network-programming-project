@@ -218,7 +218,8 @@ class image_window:
     def OnLButtonUp(self, hwnd, message, wparam, lparam):
         '''2.Click on image_window so send i read the message'''
         if self.receive_message_read == False: #if there are messages not read, now is reading
-            mt.SendMessageAndAnime(self.conn_socket, '', 'checked') # tell I read it
+            if self.readCheck == True:
+                mt.SendMessageAndAnime(self.conn_socket, '', 'checked') # tell I read it
             self.receive_message_read=True #no message not read
             
         if self.drag_showing == False:
