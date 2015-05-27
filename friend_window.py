@@ -37,6 +37,8 @@ class FriendWin:
           WM_CONNACCEPTED: self.OnConnAccepted,
           WM_FRIENDREFRESHED: self.OnFriendRefreshed,
         }
+        '''we default to use character 1'''
+        self.char_id = '1'
         '''get friend list object'''
         self.friend_list = FriendList('friends')
         '''create list of child window'''
@@ -276,8 +278,8 @@ class FriendWin:
                 return win
         return None
     
-    def getCharPath(self, id):
-        return 'data/cha/'+id+'/character1.txt'
+    def getCharPath(self, user_id, character_id):
+        return 'data/'+user_id+'/char/'+character_id+'/character1.txt'
     
     def StartChat(self, friend_id, sock=None):
         '''
@@ -300,7 +302,7 @@ class FriendWin:
                     name, 
                     sock, 
                     ip, 
-                    self.getCharPath(id),
+                    self.getCharPath(id, self.char_id),
                     id))
                 break
         

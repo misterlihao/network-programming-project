@@ -123,7 +123,7 @@ class image_window:
         self.chat_msg_win = []
         '''the sent msg window showing'''
         self.sent_msg_win = None
-        print(self.getActionPath('idle.txt'))
+        print('the path input image_window get: ',self.getActionPath('idle.txt'))
         self.showAction(self.getActionPath('idle.txt'), True)
         '''for read cheack'''
         self.receive_message_read = True #no not yet read received message
