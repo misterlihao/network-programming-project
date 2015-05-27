@@ -1,7 +1,9 @@
 from online_check import *
+import os
+import shutil, errno
 class FriendList:
     '''
-    form of items = [ip, name, status, id]
+    form of items = [ip, name, status, id, email]
         '''
     def __init__(self, file_name):
         self.file_name = file_name
@@ -11,26 +13,32 @@ class FriendList:
             for line in file:
                 if line[-1]=='\n':
                     line = line[:-1]
-                ip, name,id = line.split(':')
-                self.ip_name_status_list.append([ip, name, False, id])#default to offline
+                ip, name,id,email = line.split(':')
+                self.ip_name_status_list.append([ip, name, False, id, email])#default to offline
                 if int(self.id_max) < int(id):
                     self.id_max = int(id)
                 
     def Save(self):
         with open(self.file_name, 'w') as file:
             for each in self.ip_name_status_list:
-                file.write('%s:%s:%s\n'%(each[0],each[1],each[3]))
+                file.write('%s:%s:%s:%s\n'%(each[0],each[1],each[3], each[4]))
     
-    def ChangeFriendName(self, friend_name, new_name):
+    def ChangeFriendName(self, friend_id, new_name):
         for list in self.ip_name_status_list:
-            if (list[1]==friend_name):
+            if (list[3]==friend_id):
                 list[1] = new_name;
                 break;
     
-    def ChangeFriendIp(self, friend_name, new_ip):
+    def ChangeFriendIp(self, friend_id, new_ip):
         for list in self.ip_name_status_list:
-            if (list[1]==friend_name):
+            if (list[3]==friend_id):
                 list[0] = new_ip;
+                break;
+            
+    def ChangeFriendEmail(self, friend_id, new_email):
+        for list in self.ip_name_status_list:
+            if (list[3]==friend_id):
+                list[4] = new_email
                 break;
         
     def RefreshOnlineStatus(self):
@@ -49,12 +57,15 @@ class FriendList:
                 each[2] = False
         return updated_friends
     
-    def AddNewFriend(self,ip, name):
+    def AddNewFriend(self,ip, name, email):
         '''
         '''
-        self.ip_name_status_list.append([ip, name, False, self.id_max+1])
+        self.ip_name_status_list.append([ip, name, False, self.id_max+1, email])
         self.id_max += 1
-        pass
+        folder_path = 'data/cha/' + str(self.id_max) 
+        #if not os.path.exists(folder_path):
+        #    os.makedirs(folder_path)
+        copyanything('data/cha/'+str(self.id_max-1), folder_path)
     
     def __len__(self):
         return len(self.ip_name_status_list)
@@ -68,3 +79,11 @@ class FriendList:
         '''
         for item in self.ip_name_status_list:
             yield item
+            
+def copyanything(src, dst):
+    try:
+        shutil.copytree(src, dst)
+    except OSError as exc:
+        if exc.errno == errno.ENOTDIR:
+            shutil.copy(src, dst)
+        else: raise

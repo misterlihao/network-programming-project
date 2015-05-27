@@ -16,7 +16,6 @@ class open_check_online_window():
                           command=self.check_online)
         check.pack(side = 'right', fill = 'both')
         self.co.geometry('+%d+%d'% (x,y))
-        self.co.mainloop()
         
     def on_return(self, event):
         self.check_online()
@@ -32,7 +31,6 @@ class open_check_online_window():
         except Exception as err:
             tkmb.showerror('Error', err)
         self.co.destroy()
-        self.co.quit()
 
 class open_jumpout_window():
     def __init__(self, data, x, y):
@@ -46,11 +44,9 @@ class open_jumpout_window():
                           command=self.close_window)
         Ok.pack(side = 'right', fill = 'both')
         self.jw.geometry('+%d+%d'% (x,y))
-        self.jw.mainloop()
         
     def close_window(self): 
         self.jw.destroy()
-        self.jw.quit()
     
 if __name__ == '__main__':
     #open_check_online_window(600, 300)

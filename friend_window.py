@@ -32,6 +32,7 @@ class FriendWin:
           win32con.WM_SYSCOMMAND: self.OnSysCommand,
           win32con.WM_COMMAND: self.OnCommand,
           win32con.WM_MOUSEWHEEL: self.OnMouseWheel,
+          win32con.WM_SIZE: self.OnSize,
           WM_CONNACCEPTED: self.OnConnAccepted,
           WM_FRIENDREFRESHED: self.OnFriendRefreshed,
         }
@@ -47,7 +48,7 @@ class FriendWin:
         '''index of frist friend in self.friend_list'''
         self.friend_first_index = 0
         '''index of frist friend in self.friend_list'''
-        self.friend_list_len = 3
+        self.friend_list_len = 4
         '''create child windows of friends'''
         
         cn = self.RegisterClass()
@@ -61,7 +62,8 @@ class FriendWin:
             name = self.friend_list[i][1]
             ip = self.friend_list[i][0]
             friend_id = self.friend_list[i][3]
-            fli = FLI.create(self, ip, name, friend_id, 0, 24*i, rect[2], 24)
+            email = self.friend_list[i][4]
+            fli = FLI.create(self, ip, name, friend_id, email, 0, 24*i, rect[2], 24)
             self.friend_list_item_list.append(fli)
         
         win32gui.ShowWindow(self.hwnd, win32con.SW_NORMAL)
@@ -82,6 +84,10 @@ class FriendWin:
         myThread.setDaemon(True)
         myThread.start()
         
+        self.tk_mainloop = tk.Tk()
+        self.tk_mainloop.withdraw()
+        self.tk_mainloop.mainloop()
+        
     def RegisterClass(self):
         className = "friend_window"
         wc = win32gui.WNDCLASS()
@@ -97,10 +103,10 @@ class FriendWin:
         return className
 
     def BuildWindow(self, className):
-        style = win32con.WS_OVERLAPPEDWINDOW &~ win32con.WS_THICKFRAME
+        style = win32con.WS_OVERLAPPEDWINDOW
         w=250
         h=500
-        
+            
         self.hwnd = win32gui.CreateWindow(
                              className,
                              "freind list", style,
@@ -112,6 +118,22 @@ class FriendWin:
         win32gui.AppendMenu(self.menubar, win32con.MF_STRING, 2, 'add new friend')
         win32gui.SetMenu(self.hwnd, self.menubar)
     
+    def OnSize(self, hwnd, msg, wp, lp):
+        '''get client w, h'''
+        w, h = win32api.LOWORD(lp), win32api.HIWORD(lp)
+        if h != self.friend_list_len*24:
+            '''resize the height if needed'''
+            winRect = win32gui.GetWindowRect(hwnd)
+            winW = winRect[2]-winRect[0]
+            winH = (winRect[3]-winRect[1]-h)+self.friend_list_len*24
+            win32gui.SetWindowPos(self.hwnd, 0, 0, 0, winW, winH, win32con.SWP_NOMOVE|win32con.SWP_NOOWNERZORDER)
+        else:
+            for i in range(len(self.friend_list_item_list)):
+                list_item = self.friend_list_item_list[i]
+                itemH = h//self.friend_list_len
+                win32gui.SetWindowPos(list_item.hwnd, 0, 0, i*itemH, w, itemH, win32con.SWP_NOOWNERZORDER)
+        return True
+        
     def OnCommand(self, hwnd, msg, wp, lp):
         if win32api.HIWORD(wp) == 0: #menu command
             menu_id = win32api.LOWORD(wp)
@@ -123,7 +145,8 @@ class FriendWin:
                 point = win32gui.GetCursorPos()
                 OpenAddFriendWindow(point[0], point[1], new_friend_list)
                 for each in new_friend_list:
-                    self.friend_list.AddNewFriend(each[0], each[1])
+                    self.friend_list.AddNewFriend(each[0], each[1], each[2]) #ip, name, email
+                
         
     def OnSysCommand(self, hwnd, msg, wp, lp):
         '''win32 callback, edit to control
@@ -208,9 +231,10 @@ class FriendWin:
             except:pass
             try:
                 each.edit_window.destroy()
-                each.edit_window.quit()
             except:pass
         self.friend_list.Save()
+        self.tk_mainloop.destroy()
+        self.tk_mainloop.quit()
         win32gui.DestroyMenu(self.menubar)
         win32gui.PostQuitMessage(0)
         return win32gui.DefWindowProc(hwnd, msg, wp, lp)
@@ -225,6 +249,7 @@ class FriendWin:
             friendID = None
             myChafile = None
             callbackfunc = None
+            print(scName[0])
             for each in self.friend_list_item_list:
                 if each.IpIsMe(scName[0]):
                     while True:#wait until window created
@@ -246,17 +271,21 @@ class OpenAddFriendWindow:
         '''
         self.root = tk.Tk()
         self.root.title('add new friend')
-        self.input_panes = tk.PanedWindow(orient=tk.HORIZONTAL)
+        self.input_panes = tk.PanedWindow(self.root,orient=tk.HORIZONTAL)
         self.input_panes.pack(fill=BOTH, expand=1)
         self.lable_for_ip = tk.Label(self.input_panes, text='ip:')
         self.entry_for_ip = tk.Entry(self.input_panes, width=10)
         self.lable_for_name = tk.Label(self.input_panes, text='name:')
         self.entry_for_name = tk.Entry(self.input_panes, width=10)
+        self.lable_for_eamil = tk.Label(self.input_panes, text='email:')
+        self.entry_for_eamil = tk.Entry(self.input_panes, width=15)
         self.input_panes.add(self.lable_for_ip)
         self.input_panes.add(self.entry_for_ip)
         self.input_panes.add(self.lable_for_name)
         self.input_panes.add(self.entry_for_name)
-        self.button_panes = tk.PanedWindow(orient=tk.HORIZONTAL, width=15)
+        self.input_panes.add(self.lable_for_eamil)
+        self.input_panes.add(self.entry_for_eamil)
+        self.button_panes = tk.PanedWindow(self.root,orient=tk.HORIZONTAL, width=15)
         self.button_panes.pack(fill=BOTH, expand=1)
         self.button_for_add = tk.Button(self.button_panes, text="Add this friend", command=lambda: self.CommitEntry(new_friend_list))
         self.button_for_close = tk.Button(self.button_panes, text="Exit", command=self.Destroy, width=5)
@@ -268,7 +297,8 @@ class OpenAddFriendWindow:
     def CommitEntry(self, new_friend_list):
         ip = self.entry_for_ip.get()
         name = self.entry_for_name.get()
-        new_friend_list.append((ip, name))
+        email = self.entry_for_eamil.get()
+        new_friend_list.append((ip, name, email))
         
     def Destroy(self):
         self.root.destroy()
@@ -278,12 +308,6 @@ if __name__ == '__main__':
     mainwin = FriendWin()
     
     '''play as a remote user to test recving functions'''
-    def test(*args):
-        pass
-        
-    th=threading.Thread(target=test)
-    th.setDaemon(True)
-    th.start()
     
     # end win32 windows
     win32gui.PumpMessages()
