@@ -19,6 +19,7 @@ from distutils.cmd import Command
 from test.test_heapq import SideEffectLT
 from tkinter.tix import COLUMN
 from tkinter.constants import BOTH
+from image_window import image_window
 class FriendWin:
     '''
     the main window
@@ -49,8 +50,9 @@ class FriendWin:
         self.friend_first_index = 0
         '''index of frist friend in self.friend_list'''
         self.friend_list_len = 4
+        '''chat windows'''
+        self.chat_wins = []
         '''create child windows of friends'''
-        
         cn = self.RegisterClass()
         self.BuildWindow(cn)
         
@@ -176,15 +178,14 @@ class FriendWin:
         '''
         sock, addr = self.newconn_queue.get()
         
-        friend_list_item = None
-        for fli in self.friend_list_item_list:
-            if fli.IpIsMe(addr[0]):
-                friend_list_item = fli
+        for (ip, name, status, id, email) in self.friend_list:
+            if ip == addr:
+                self.StartChat(id, sock)
+                print('user', friend_list_item.model.friend_name, 'connected at', addr)
+                print('chat started, character opened')
+            return
+        print('unknown connection from (%s) rejected'%ip)
         
-        print('user', friend_list_item.model.friend_name, 'connected at', addr)
-        friend_list_item.StartChat(sock)
-        print('chat started, character opened')
-    
     def RefreashFriendStatusInThread(self):
         while True:
             time.sleep(1)
@@ -214,6 +215,8 @@ class FriendWin:
         self.friend_first_index -= delta
         if self.friend_first_index < 0:
             self.friend_first_index = 0
+        elif self.friend_list_len > len(self.friend_list):
+            pass
         elif self.friend_first_index + self.friend_list_len > len(self.friend_list):
             self.friend_first_index = len(self.friend_list) - self.friend_list_len
             
@@ -231,6 +234,9 @@ class FriendWin:
             except:pass
             try:
                 each.edit_window.destroy()
+            except:pass
+        for each in self.chat_wins:
+            try:win32gui.DestroyWindow(each.hwnd)
             except:pass
         self.friend_list.Save()
         self.tk_mainloop.destroy()
@@ -250,20 +256,68 @@ class FriendWin:
             myChafile = None
             callbackfunc = None
             print(scName[0])
-            for each in self.friend_list_item_list:
-                if each.IpIsMe(scName[0]):
+            for each in self.chat_wins:
+                if each.ip == scName[0]:
                     while True:#wait until window created
                         try:
-                            friendID = each.model.friend_id
-                            myChafile = each.chat_win.myCharFile
-                            callbackfunc = each.chat_win.setChadisplay
+                            friendID = each.friendID
+                            myChafile = each.myCharFile
+                            callbackfunc = each.setChadisplay
                             break
                         except: 
                             time.sleep(0.1)
                     break
             arg = (sc, myChafile, friendID, callbackfunc)
             threading.Thread(None, updataIfNeed, args=arg).start()
-
+    
+    def GetChatWin(self, friend_id):
+        for win in self.chat_wins:
+            if win.friendID == friend_id:
+                return win
+        return None
+    
+    def getCharPath(self, id):
+        return 'data/cha/'+id+'/character1.txt'
+    
+    def StartChat(self, friend_id, sock=None):
+        '''
+        Create a image_window here
+        should be the only entrance of image_window
+        give a new socket to chat_win if chat_win is windowed
+        '''
+        chat_win = self.GetChatWin(friend_id)
+        if chat_win != None and win32gui.IsWindow(chat_win.hwnd):
+            if sock == None:
+                raise Exception('start chat when opened, without socket')
+            else:
+                chat_win.setConnectedSocket(sock)
+                return
+        
+        for (ip, name, status, id, email) in self.friend_list:
+            if id == friend_id:
+                self.chat_wins.append(image_window(
+                    self.OnChatClosed, 
+                    name, 
+                    sock, 
+                    ip, 
+                    self.getCharPath(id),
+                    id))
+                break
+        
+        print('character created')
+        '''tricky!HACK! stuck here'''
+    
+    def OnChatClosed(self, chat_win):
+        '''hand made callback, passed to image_window
+        called after image_window closed
+        ensure you know what you're doing'''
+        '''set button text 'chat' '''
+        for item in self.friend_list_item_list:
+            if item.model.friend_id == chat_win.friendID:
+                item.OnChatClosed()
+        
+        self.chat_wins.remove(chat_win)
+        
 class OpenAddFriendWindow:
     def __init__(self, x, y, new_friend_list):
         '''

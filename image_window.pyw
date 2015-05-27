@@ -466,7 +466,7 @@ class image_window:
         '''
         '''get the speak_window handle'''
         speak_window_hwnd = win32gui.GetForegroundWindow()
-        '''if self.conn_socket == None:
+        if self.conn_socket == None:
             self.conn_socket = mt.StartTalking(self.ip)
             if self.conn_socket == None:
                 return 
@@ -476,7 +476,7 @@ class image_window:
             myThread.start()
             self.DoAfterConnectEstablished() 
         
-        mt.SendMessageAndAnime(self.conn_socket, self.input_text.get(), self.tmp_anime)'''
+        mt.SendMessageAndAnime(self.conn_socket, self.input_text.get(), self.tmp_anime)
         msg = self.input_text.get()
         self.this_messages.append(msg)
         '''1.send new message so readCheck set to False'''
@@ -493,6 +493,7 @@ class image_window:
             self.Image_list[self.image_index].draw_on_dc(dc, RGB(255,255,255))
         win32gui.EndPaint(hwnd, ps)
         return True
+    
     def OnDestroy(self, hwnd, message, wparam, lparam):
         '''
         clean things here
@@ -512,7 +513,10 @@ class image_window:
         for win in self.chat_msg_win:
             try:turnOffTk(win)
             except :pass
-        self.after()
+        SendMessageAndAnime(self.conn_socket, 'close_chat', 'close_chat')
+        self.conn_socket.close()
+        self.conn_socket = None
+        self.after(self)
         return True
     
     def getCharFile(self):
@@ -587,20 +591,26 @@ class image_window:
         while True:
             try:
                 msg, anime = mt.RecvMessageAndAnime(self.conn_socket)
-                '''3.if receive a readCheck confirm'''
-                if msg == "" and anime == "checked":  #receive a readCheck
+                if msg == 'close_chat' and anime == 'close_chat':
+                    '''rcev chat close request, maybe show some anime here'''
+                    raise Exception('chat closed by remote')
+                elif msg == "" and anime == "checked":  #receive a readCheck
+                    '''3.if receive a readCheck confirm'''
                     self.sended_message_read = True #no need but on logical
                     self.showAction(self.getActionPath('read2.txt')) #show message read animation
                     self.sent_msg_win.destroy()
                     continue
                 else: self.receive_message_read = False #received a normal message but not readCheck, control to send when next click
             except:
-                print('recv fail')
+                '''chat closed'''
+                print('not connected anymore')
+                self.conn_socket.close()
+                self.conn_socket = None
                 return
             '''send the message to next stage .Control the timing here'''
             self.chatmsg_queue.put((msg, anime))
             win32gui.SendMessage(self.hwnd, WM_CHATMSGRECV, 0, 0)
-            
+    
     def OnChatMessageReceived(self, hwnd, win32msg, wp, lp):
         '''
         Called when recv msg
