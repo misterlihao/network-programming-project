@@ -120,7 +120,7 @@ class image_window:
         self.chatmsg_queue = queue.Queue()
         '''the chat msg window showing'''
         self.chat_msg_win = []
-        
+        #self.showAction(self.getActionPath('fall.txt'), True)
         self.showAction(self.getActionPath('idle.txt'), True)
         '''for read cheack'''
         self.receive_message_read = True #no not yet read received message
