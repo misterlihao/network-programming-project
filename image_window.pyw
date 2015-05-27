@@ -124,7 +124,7 @@ class image_window:
         self.chat_msg_win = []
         '''the sent msg window showing'''
         self.sent_msg_win = None
-        
+        print('the path input image_window get: ',self.getActionPath('idle.txt'))
         self.showAction(self.getActionPath('idle.txt'), True)
         '''for read cheack'''
         #actionList = ['walk.txt', 'idle.txt', 'sit.txt', 'fall.txt']
@@ -222,7 +222,8 @@ class image_window:
     def OnLButtonUp(self, hwnd, message, wparam, lparam):
         '''2.Click on image_window so send i read the message'''
         if self.receive_message_read == False: #if there are messages not read, now is reading
-            mt.SendMessageAndAnime(self.conn_socket, '', 'checked') # tell I read it
+            if self.readCheck == True:
+                mt.SendMessageAndAnime(self.conn_socket, '', 'checked') # tell I read it
             self.receive_message_read=True #no message not read
             
         if self.drag_showing == False:
@@ -232,6 +233,8 @@ class image_window:
         self.dragging = False
         self.drag_showing = False
         win32gui.ReleaseCapture()
+        '''set other attaced windows' position, if put this in OnMove(), cause vanishing'''
+        self.SetAttachedWinPos()
         return True
     def OnMouseMove(self, hwnd, message, wparam, lparam):
         if self.dragging :
@@ -291,7 +294,6 @@ class image_window:
         called when window is moved.
         control things here
         '''
-        self.SetAttachedWinPos()
         return win32gui.DefWindowProc(hwnd, message, wparam, lparam)
     
     def OnSize(self, hwnd, message, wparam, lparam):
@@ -310,7 +312,6 @@ class image_window:
             except :pass
         try:self.sent_msg_win.geometry('%dx%d+%d+%d' % self.GetSentMsgWinSizePos())
         except :pass
-    
     def GetSpeakWindowPos(self):
         '''control the position of speaking window'''
         x = win32gui.GetWindowRect(self.hwnd)[0]
@@ -470,7 +471,7 @@ class image_window:
         '''
         '''get the speak_window handle'''
         speak_window_hwnd = win32gui.GetForegroundWindow()
-        '''if self.conn_socket == None:
+        if self.conn_socket == None:
             self.conn_socket = mt.StartTalking(self.ip)
             if self.conn_socket == None:
                 return 
@@ -480,7 +481,7 @@ class image_window:
             myThread.start()
             self.DoAfterConnectEstablished() 
         
-        mt.SendMessageAndAnime(self.conn_socket, self.input_text.get(), self.tmp_anime)'''
+        mt.SendMessageAndAnime(self.conn_socket, self.input_text.get(), self.tmp_anime)
         msg = self.input_text.get()
         self.this_messages.append(msg)
         '''1.send new message so readCheck set to False'''
@@ -497,6 +498,7 @@ class image_window:
             self.Image_list[self.image_index].draw_on_dc(dc, RGB(255,255,255))
         win32gui.EndPaint(hwnd, ps)
         return True
+    
     def OnDestroy(self, hwnd, message, wparam, lparam):
         '''
         clean things here
@@ -516,7 +518,11 @@ class image_window:
         for win in self.chat_msg_win:
             try:turnOffTk(win)
             except :pass
-        self.after()
+        if self.conn_socket != None:
+            mt.SendMessageAndAnime(self.conn_socket, 'close_chat', 'close_chat')
+            self.conn_socket.close()
+            self.conn_socket = None
+        self.after(self)
         return True
     
     def getCharFile(self):
@@ -563,7 +569,6 @@ class image_window:
                 if int(temp[4]) != 0:
                     skinTemp, st= skinTemp.split('.', 1)
                     skinTemp = skinTemp + '_' + temp[4] + '.bmp'
-                
                 hbmp2 = win32gui.LoadImage(0, skinTemp, win32gui.IMAGE_BITMAP, 0, 0,win32gui.LR_LOADFROMFILE)
                 imgTemp.append_component(hbmp2, int(temp[0]), int(temp[1]), int(temp[2]), int(temp[3]))
             img.append(imgTemp)
@@ -591,20 +596,26 @@ class image_window:
         while True:
             try:
                 msg, anime = mt.RecvMessageAndAnime(self.conn_socket)
-                '''3.if receive a readCheck confirm'''
-                if msg == "" and anime == "checked":  #receive a readCheck
+                if msg == 'close_chat' and anime == 'close_chat':
+                    '''rcev chat close request, maybe show some anime here'''
+                    raise Exception('chat closed by remote')
+                elif msg == "" and anime == "checked":  #receive a readCheck
+                    '''3.if receive a readCheck confirm'''
                     self.sended_message_read = True #no need but on logical
                     self.showAction(self.getActionPath('read2.txt')) #show message read animation
                     self.sent_msg_win.destroy()
                     continue
                 else: self.receive_message_read = False #received a normal message but not readCheck, control to send when next click
             except:
-                print('recv fail')
+                '''chat closed'''
+                print('not connected anymore')
+                self.conn_socket.close()
+                self.conn_socket = None
                 return
             '''send the message to next stage .Control the timing here'''
             self.chatmsg_queue.put((msg, anime))
             win32gui.SendMessage(self.hwnd, WM_CHATMSGRECV, 0, 0)
-            
+    
     def OnChatMessageReceived(self, hwnd, win32msg, wp, lp):
         '''
         Called when recv msg
@@ -715,7 +726,7 @@ class image_window:
 
     
 def getSkelFile():
-    return 'data/cha/1/skeleton/skeleton6.txt'
+    return 'data/1/char/1/skeleton/skeleton6.txt'
 
 class ChangeImageThread(threading.Thread):
     def __init__(self, win, repeating):
@@ -740,8 +751,7 @@ if __name__ == '__main__':
     '''
     test codes are too old, try some new codes.
     '''
-
-    win = image_window(lambda:win32gui.PostQuitMessage(0), '123', None, '111.111.111.111', 'data/cha/character1/character1.txt', '1')
+    win = image_window(lambda:win32gui.PostQuitMessage(0), '123', None, '111.111.111.111', 'data/1/char/1/character1.txt', '1')
     def test(msg):
         win.ShowNewChatMsgWin(msg)
         print(msg,'thread ended')

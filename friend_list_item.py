@@ -53,7 +53,6 @@ class FriendListItemView:
         '''
         self.model = Model(ip, friend_name, False, friend_id, friend_email)
         self.id = _id
-        self.chat_win = None
         self.hwnd = win32gui.CreateWindow(
             "window_list_item","",
             win32con.WS_VISIBLE|win32con.WS_CHILD,
@@ -85,6 +84,14 @@ class FriendListItemView:
     def SetFriendData(self, friend_data):
         '''friend_data: a list of form in friendList'''
         self.model.set(*friend_data)
+        if self.friend_window.GetChatWin(self.model.friend_id) == None:
+            win32gui.SetWindowText(self.chat_btn, 'chat')
+        else:
+            win32gui.SetWindowText(self.chat_btn, 'close')
+        
+    def StartChat(self):    
+        '''WARNNING!! don't use it anymore. USE StartChat() in frien_window!!'''
+        self.friend_window.StartChat(self.model.friend_id)
         
     def OnCommand(self, hwnd, msg, wp, lp):
         '''win32 callback
@@ -92,12 +99,15 @@ class FriendListItemView:
         if (wp>>16)&0xffff == win32con.BN_CLICKED\
             and wp&0xffff == self.id and lp == self.chat_btn:
             try:
-                if win32gui.IsWindow(self.chat_win.hwnd):
-                    win32gui.DestroyWindow(self.chat_win.hwnd)
+                chat_win = self.friend_window.GetChatWin(self.model.friend_id)
+                
+                if win32gui.IsWindow(chat_win.hwnd):
+                    win32gui.DestroyWindow(chat_win.hwnd)
                 else:
                     raise Exception()
             except :
-                self.StartChat()
+                self.friend_window.StartChat(self.model.friend_id)
+                win32gui.SetWindowText(self.chat_btn, 'close')
     
     def OnPaint(self, hwnd, msg, wp, lp):
         '''win32 callback
@@ -117,32 +127,6 @@ class FriendListItemView:
         
         win32gui.EndPaint(hwnd, ps)
         return True
-    
-    def StartChat(self, sock=None):
-        '''
-        Create a image_window here
-        should be the only entrance of image_window
-        --supposed just called once before a corresponding win32gui.DestroyWindow--
-        above line is not truth anymore
-        give a new socket to chat_win if chat_win is windowed
-        '''
-        if self.chat_win != None and win32gui.IsWindow(self.chat_win.hwnd):
-            if sock == None:
-                raise Exception('start chat when opened, without socket')
-            else:
-                self.chat_win.setConnectedSocket(sock)
-                return
-        
-        win32gui.SetWindowText(self.chat_btn, 'close')
-        self.chat_win = image_window(
-            self.OnChatClosed, 
-            self.model.friend_name, 
-            sock, 
-            self.model.ip, 
-            self.getCharPath(self.model.friend_id)
-            ,self.model.friend_id)
-        print('character created')
-        '''tricky!HACK! stuck here'''
         
     def getCharPath(self, id):
         return 'data/cha/'+id+'/character1.txt'
@@ -161,15 +145,12 @@ class FriendListItemView:
         called after image_window closed
         ensure you know what you're doing'''
         '''set button text 'chat' '''
-        win32gui.SetWindowText(self.chat_btn, 'chat')
-        '''for next open'''
-        self.chat_win = None
+        if win32gui.IsWindow(self.chat_btn):
+            win32gui.SetWindowText(self.chat_btn, 'chat')
         
     def OnDestroy(self, hwnd, msg, wp, lp):
         '''win32 callback
         ensure you know what you're doing'''
-        try:win32gui.DestroyWindow(self.chat_win.hwnd)
-        except:pass
         return win32gui.DefWindowProc(hwnd, msg, wp, lp)
     
     def OnRButtonUp(self, hwnd, message, wparam, lparam):
