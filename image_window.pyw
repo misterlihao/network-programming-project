@@ -229,6 +229,8 @@ class image_window:
         self.dragging = False
         self.drag_showing = False
         win32gui.ReleaseCapture()
+        '''set other attaced windows' position, if put this in OnMove(), cause vanishing'''
+        self.SetAttachedWinPos()
         return True
     def OnMouseMove(self, hwnd, message, wparam, lparam):
         if self.dragging :
@@ -288,7 +290,6 @@ class image_window:
         called when window is moved.
         control things here
         '''
-        self.SetAttachedWinPos()
         return win32gui.DefWindowProc(hwnd, message, wparam, lparam)
     
     def OnSize(self, hwnd, message, wparam, lparam):
