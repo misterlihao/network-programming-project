@@ -62,10 +62,10 @@ class FriendList:
         '''
         self.ip_name_status_list.append([ip, name, False, self.id_max+1, email])
         self.id_max += 1
-        folder_path = 'data/cha/' + str(self.id_max) 
-        #if not os.path.exists(folder_path):
-        #    os.makedirs(folder_path)
-        copyanything('data/cha/'+str(self.id_max-1), folder_path)
+        folder_path = 'data/' + str(self.id_max) 
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+        copyanything('data/1/char', folder_path+'/char')
     
     def __len__(self):
         return len(self.ip_name_status_list)

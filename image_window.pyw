@@ -19,6 +19,7 @@ from win32api import RGB
 import queue
 from tkinter import Entry
 import myPacket as mp
+import elfAutoBehavior
 config_file="config"
 history_file="history"
 #execute once
@@ -123,9 +124,12 @@ class image_window:
         self.chat_msg_win = []
         '''the sent msg window showing'''
         self.sent_msg_win = None
-        print(self.getActionPath('idle.txt'))
+        print('the path input image_window get: ',self.getActionPath('idle.txt'))
         self.showAction(self.getActionPath('idle.txt'), True)
         '''for read cheack'''
+        #actionList = ['walk.txt', 'idle.txt', 'sit.txt', 'fall.txt']
+        #self.elfAutoBehaviorThread = elfAutoBehavior.ElfAutoBehavior(self, actionList)
+        
         self.receive_message_read = True #no not yet read received message
         self.sended_message_read = True #he/she already read message
         
