@@ -3,7 +3,7 @@ this is a child (a window) of the friend window (a window_list_no_use_now)
 '''
 import win32con, win32gui, win32api
 import struct
-from image_window import image_window, getSkelFile
+from image_window import image_window
 import Image
 import message_transaction as mt
 from win32api import RGB

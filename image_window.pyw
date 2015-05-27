@@ -221,7 +221,8 @@ class image_window:
             if self.readCheck == True:
                 mt.SendMessageAndAnime(self.conn_socket, '', 'checked') # tell I read it
             self.receive_message_read=True #no message not read
-            
+            self.DestroyChatMsgWins()
+        
         if self.drag_showing == False:
             self.showAction(self.getActionPath('click.txt'))
         else:
@@ -495,6 +496,11 @@ class image_window:
         win32gui.EndPaint(hwnd, ps)
         return True
     
+    def DestroyChatMsgWins(self):
+        for win in self.chat_msg_win:
+            try:turnOffTk(win)
+            except :pass
+    
     def OnDestroy(self, hwnd, message, wparam, lparam):
         '''
         clean things here
@@ -511,9 +517,9 @@ class image_window:
         except :pass
         try:turnOffTk(self.history_window)
         except :pass
-        for win in self.chat_msg_win:
-            try:turnOffTk(win)
-            except :pass
+        self.DestroyChatMsgWins()
+        try:turnOffTk(self.sent_msg_win)
+        except:pass
         if self.conn_socket != None:
             mt.SendMessageAndAnime(self.conn_socket, 'close_chat', 'close_chat')
             self.conn_socket.close()
@@ -719,11 +725,7 @@ class image_window:
             return self.charFile
         win32gui.ShowWindow(self.hwnd, value)
         return None
-
     
-def getSkelFile():
-    return 'data/1/char/1/skeleton/skeleton6.txt'
-
 class ChangeImageThread(threading.Thread):
     def __init__(self, win, repeating):
         self.win = win

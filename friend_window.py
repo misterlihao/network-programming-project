@@ -277,7 +277,7 @@ class FriendWin:
         return None
     
     def getCharPath(self, id):
-        return 'data/cha/'+id+'/character1.txt'
+        return 'data/'+id+'/char'+'/1/character1.txt'
     
     def StartChat(self, friend_id, sock=None):
         '''
