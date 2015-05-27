@@ -145,11 +145,9 @@ class FriendWin:
                 point = win32gui.GetCursorPos()
                 COW.open_check_online_window(point[0], point[1])
             elif menu_id == 2:
-                new_friend_list = []
                 point = win32gui.GetCursorPos()
-                OpenAddFriendWindow(point[0], point[1], new_friend_list)
-                for each in new_friend_list:
-                    self.friend_list.AddNewFriend(each[0], each[1], each[2]) #ip, name, email
+                OpenAddFriendWindow(point[0], point[1], self)
+                
                 
         
     def OnSysCommand(self, hwnd, msg, wp, lp):
@@ -321,10 +319,11 @@ class FriendWin:
         self.chat_wins.remove(chat_win)
         
 class OpenAddFriendWindow:
-    def __init__(self, x, y, new_friend_list):
+    def __init__(self, x, y, parent_obeject):
         '''
         create the add friend window.
         '''
+        self.parent = parent_obeject
         self.root = tk.Tk()
         self.root.title('add new friend')
         self.input_panes = tk.PanedWindow(self.root,orient=tk.HORIZONTAL)
@@ -343,18 +342,18 @@ class OpenAddFriendWindow:
         self.input_panes.add(self.entry_for_eamil)
         self.button_panes = tk.PanedWindow(self.root,orient=tk.HORIZONTAL, width=15)
         self.button_panes.pack(fill=BOTH, expand=1)
-        self.button_for_add = tk.Button(self.button_panes, text="Add this friend", command=lambda: self.CommitEntry(new_friend_list))
+        self.button_for_add = tk.Button(self.button_panes, text="Add this friend", command=self.CommitEntry)
         self.button_for_close = tk.Button(self.button_panes, text="Exit", command=self.Destroy, width=5)
         self.button_panes.add(self.button_for_close) 
         self.button_panes.add(self.button_for_add)
         self.root.geometry('+%d+%d'% (x,y))
         self.root.mainloop()
         
-    def CommitEntry(self, new_friend_list):
+    def CommitEntry(self):
         ip = self.entry_for_ip.get()
         name = self.entry_for_name.get()
         email = self.entry_for_eamil.get()
-        new_friend_list.append((ip, name, email))
+        self.parent.friend_list.AddNewFriend(ip, name, email) 
         
     def Destroy(self):
         self.root.destroy()
