@@ -123,7 +123,7 @@ class image_window:
         self.chat_msg_win = []
         '''the sent msg window showing'''
         self.sent_msg_win = None
-        
+        print(self.getActionPath('idle.txt'))
         self.showAction(self.getActionPath('idle.txt'), True)
         '''for read cheack'''
         self.receive_message_read = True #no not yet read received message
@@ -307,7 +307,6 @@ class image_window:
             except :pass
         try:self.sent_msg_win.geometry('%dx%d+%d+%d' % self.GetSentMsgWinSizePos())
         except :pass
-    
     def GetSpeakWindowPos(self):
         '''control the position of speaking window'''
         x = win32gui.GetWindowRect(self.hwnd)[0]
@@ -564,7 +563,6 @@ class image_window:
                 if int(temp[4]) != 0:
                     skinTemp, st= skinTemp.split('.', 1)
                     skinTemp = skinTemp + '_' + temp[4] + '.bmp'
-                
                 hbmp2 = win32gui.LoadImage(0, skinTemp, win32gui.IMAGE_BITMAP, 0, 0,win32gui.LR_LOADFROMFILE)
                 imgTemp.append_component(hbmp2, int(temp[0]), int(temp[1]), int(temp[2]), int(temp[3]))
             img.append(imgTemp)
@@ -722,7 +720,7 @@ class image_window:
 
     
 def getSkelFile():
-    return 'data/cha/1/skeleton/skeleton6.txt'
+    return 'data/1/char/1/skeleton/skeleton6.txt'
 
 class ChangeImageThread(threading.Thread):
     def __init__(self, win, repeating):
@@ -747,8 +745,7 @@ if __name__ == '__main__':
     '''
     test codes are too old, try some new codes.
     '''
-
-    win = image_window(lambda:win32gui.PostQuitMessage(0), '123', None, '111.111.111.111', 'data/cha/character1/character1.txt', '1')
+    win = image_window(lambda:win32gui.PostQuitMessage(0), '123', None, '111.111.111.111', 'data/1/char/1/character1.txt', '1')
     def test(msg):
         win.ShowNewChatMsgWin(msg)
         print(msg,'thread ended')
