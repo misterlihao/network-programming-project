@@ -5,7 +5,7 @@ sizeBytes = 8
 
 def sendPacket(sock, bstr):
 	sock.send(struct.pack(packet_len_pack_pattern, len(bstr)))
-	sock.send(bstr)
+	sock.sendall(bstr)
 
 def recvPacket(sock):
 	packet_len_bstr = recvBytes(sock, sizeBytes)
