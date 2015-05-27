@@ -184,6 +184,9 @@ class FriendWin:
                 print('user', friend_list_item.model.friend_name, 'connected at', addr)
                 print('chat started, character opened')
             return
+        
+        mt.SendChatEndMessage(sock)
+        sock.close()
         print('unknown connection from (%s) rejected'%ip)
         
     def RefreashFriendStatusInThread(self):
@@ -256,6 +259,7 @@ class FriendWin:
             myChafile = None
             callbackfunc = None
             print(scName[0])
+            friend_found = False
             for each in self.chat_wins:
                 if each.ip == scName[0]:
                     while True:#wait until window created
@@ -266,9 +270,13 @@ class FriendWin:
                             break
                         except: 
                             time.sleep(0.1)
+                    friend_found = True
                     break
-            arg = (sc, myChafile, friendID, callbackfunc)
-            threading.Thread(None, updataIfNeed, args=arg).start()
+            if friend_found:
+                arg = (sc, myChafile, friendID, callbackfunc)
+                threading.Thread(None, updataIfNeed, args=arg).start()
+            else:
+                sock.close()
     
     def GetChatWin(self, friend_id):
         for win in self.chat_wins:

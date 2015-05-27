@@ -92,6 +92,8 @@ def updataIfNeed(sock, myChafile, friendID, func, callbackFunc = None):
         data = mp.recvPacket(sock).decode()
         if data == 'True':
             uploadCharacter(sock, myChadir)
+    
+    sock.close()
     if callbackFunc != None:
         callbackFunc()
         

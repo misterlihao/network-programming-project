@@ -239,6 +239,7 @@ class image_window:
         '''set other attaced windows' position, if put this in OnMove(), cause vanishing'''
         self.SetAttachedWinPos()
         return True
+    
     def OnMouseMove(self, hwnd, message, wparam, lparam):
         if self.dragging :
             cur_x, cur_y = win32gui.ClientToScreen(self.hwnd, (win32api.LOWORD(lparam), win32api.HIWORD(lparam)))
@@ -560,7 +561,7 @@ class image_window:
         try:turnOffTk(self.name_win)
         except:pass
         if self.conn_socket != None:
-            mt.SendMessageAndAnime(self.conn_socket, 'close_chat', 'close_chat')
+            mt.SendChatEndMessage(self.conn_socket)
             self.conn_socket.close()
             self.conn_socket = None
         self.after(self)
@@ -637,7 +638,7 @@ class image_window:
         while True:
             try:
                 msg, anime = mt.RecvMessageAndAnime(self.conn_socket)
-                if msg == 'close_chat' and anime == 'close_chat':
+                if mt.IsChatEndMessage(msg, anime):
                     '''rcev chat close request, maybe show some anime here'''
                     raise Exception('chat closed by remote')
                 elif msg == "" and anime == "checked":  #receive a readCheck
