@@ -513,9 +513,10 @@ class image_window:
         for win in self.chat_msg_win:
             try:turnOffTk(win)
             except :pass
-        SendMessageAndAnime(self.conn_socket, 'close_chat', 'close_chat')
-        self.conn_socket.close()
-        self.conn_socket = None
+        if self.conn_socket != None:
+            mt.SendMessageAndAnime(self.conn_socket, 'close_chat', 'close_chat')
+            self.conn_socket.close()
+            self.conn_socket = None
         self.after(self)
         return True
     
