@@ -103,9 +103,11 @@ class image_window:
         self.this_messages=[]
         '''for display'''
         self.chat_name = friend_name
-        '''TK mainloop unique'''
-        self.tk_mainloop = None
-        
+        ''''speak window'''
+        self.speak_window = None
+        '''name window'''
+        self.name_win = None
+        self.ShowNameWin()
         self.history_window_width = 30 # in character
         '''callback function to be execute in ondestroy'''
         self.after = after_window_close
@@ -257,6 +259,7 @@ class image_window:
             x, y = rect[0], rect[1]
             
             self.MoveTo(x+dx, y+dy)
+            
         return True
     def OnRButtonUp(self, hwnd, message, wparam, lparam):
         menu = win32gui.CreatePopupMenu()
@@ -295,6 +298,8 @@ class image_window:
         called when window is moved.
         control things here
         '''
+        if not self.dragging:
+            self.SetAttachedWinPos()
         return win32gui.DefWindowProc(hwnd, message, wparam, lparam)
     
     def OnSize(self, hwnd, message, wparam, lparam):
@@ -313,6 +318,19 @@ class image_window:
             except :pass
         try:self.sent_msg_win.geometry('%dx%d+%d+%d' % self.GetSentMsgWinSizePos())
         except :pass
+        try:
+            self.name_win.geometry('+%d+%d'%self.GetNameWinPos())
+        except :pass
+         
+    def GetNameWinPos(self):
+        '''control the position of speaking window'''
+        x = (win32gui.GetWindowRect(self.hwnd)[0]+win32gui.GetWindowRect(self.hwnd)[2])//2\
+            - len(self.chat_name)*5
+        y = win32gui.GetWindowRect(self.hwnd)[3]
+        if self.speak_window != None:
+            y += 50
+        return x,y
+
     def GetSpeakWindowPos(self):
         '''control the position of speaking window'''
         x = win32gui.GetWindowRect(self.hwnd)[0]
@@ -339,6 +357,21 @@ class image_window:
         
         self.input_text.focus()
         self.speak_window.geometry('+%d+%d' % self.GetSpeakWindowPos())
+        self.SetAttachedWinPos()
+    
+    def ShowNameWin(self):
+        '''show msg in a new bubble window'''
+        r = tk.Toplevel()
+        r.overrideredirect(True)
+        f = tk.Frame(r, bd=1,bg='black')
+        var = tk.StringVar()
+        l = tk.Label(f,bg='#bbffdd', justify='center', fg='black', font=('Consolas', 17),textvariable=var)
+        var.set(self.chat_name)
+        l.pack(fill='both',expand=True)
+        f.pack(fill='both',expand=True)
+        r.wm_attributes('-toolwindow',True, '-topmost', True)
+        r.geometry('+%d+%d'%self.GetNameWinPos())
+        self.name_win = r
         
     def ShowNewChatMsgWin(self, msg):
         '''show msg in a new bubble window'''
@@ -523,6 +556,8 @@ class image_window:
         except :pass
         self.DestroyChatMsgWins()
         try:turnOffTk(self.sent_msg_win)
+        except:pass
+        try:turnOffTk(self.name_win)
         except:pass
         if self.conn_socket != None:
             mt.SendMessageAndAnime(self.conn_socket, 'close_chat', 'close_chat')
