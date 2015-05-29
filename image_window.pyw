@@ -129,8 +129,12 @@ class image_window:
         print('the path input image_window get: ',self.getActionPath('idle.txt'))
         self.showAction(self.getActionPath('idle.txt'), True)
         '''for read cheack'''
-        #actionList = ['walk.txt', 'idle.txt', 'sit.txt', 'fall.txt']
-        #self.elfAutoBehaviorThread = elfAutoBehavior.ElfAutoBehavior(self, actionList)
+        
+        self.actionNow = None
+        actionList = ['walk.txt', 'idle.txt', 'sit.txt', 'fall.txt']
+        self.elfAutoBehaviorThread = elfAutoBehavior.ElfAutoBehavior(self, actionList)
+        self.elfAutoBehaviorThread.setDaemon(True)
+        self.elfAutoBehaviorThread.start()
         
         self.receive_message_read = True #no not yet read received message
         self.sended_message_read = True #he/she already read message
@@ -567,6 +571,13 @@ class image_window:
         self.after(self)
         return True
     
+    def getFileFromPath(self, path):
+        names=[]
+        temp = path.split('\\')
+        for i in temp:
+            names += i.split('/')
+        return names[len(names)-1]
+    
     def getCharFile(self):
         return self.charFile
     def showAction(self, skelFile, repeating = False, acting=True):
@@ -615,6 +626,7 @@ class image_window:
                 imgTemp.append_component(hbmp2, int(temp[0]), int(temp[1]), int(temp[2]), int(temp[3]))
             img.append(imgTemp)
         self.SetImages(img)
+        self.actionNow = self.getFileFromPath(skelFile)
         if acting:
             self.actionThread = ChangeImageThread(self, repeating)
             self.actionThread.setDaemon(True)
@@ -679,9 +691,9 @@ class image_window:
         for ph in path2:
             if(len(ph)>4 and (ph[len(ph)-4:] == '.txt')):
                 break
-            temp = os.path.join(temp, ph)         
+            temp = os.path.join(temp, ph)        
         return temp
-                
+    '''          
     def cmpCharVersion(self, myDataSize = 0, hisDataSize = 0):
         if myDataSize == hisDataSize:
             return True
@@ -694,7 +706,7 @@ class image_window:
                 file = os.path.join(dirPath, fileName)
                 temp += os.path.getsize(file)
         return temp
-
+    
     def checkCharVersion(self):
         text = str(self.getCharDataSize(self.getParentDirectory(self.myCharFile)))
         mp.sendPacket(self.conn_socket, text.encode('utf8'))
@@ -702,7 +714,7 @@ class image_window:
         if self.cmpCharVersion(self.getCharDataSize(self.getParentDirectory(self.charFile)), int(data)):
             return True
         return False
-
+    
     def updateCharacter(self):
         #fileName = mp.recvPacket(self.conn_socket).decode('utf8')
         fileName = self.friendID+'.zip'
@@ -741,13 +753,13 @@ class image_window:
         time.sleep(1) # delete after send in fixed len
         mp.sendPacket(self.conn_socket, b'EOF')
         os.remove(sfileName)
-        
+    '''
     def sendVersionAndUpdata(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((self.ip, 12348))
         #arg = (sock, myChafile, friChafile, friendID, callbackfunc)
         updataIfNeed(sock, self.myCharFile, self.friendID, self.setChadisplay, self.callbackfunc)
-            
+         
     def getActionPath(self, action_filename):
         path = self.getParentDirectory(self.charFile)
         return path + '/skeleton/'+action_filename
