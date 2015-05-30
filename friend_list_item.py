@@ -279,9 +279,9 @@ class OpenSendEmailWindow:
         self.pane_for_content = tk.PanedWindow(self.root, orient=HORIZONTAL, borderwidth=7)
         self.pane_for_content.pack(fill=tk.BOTH, expand=1)
         self.lable_for_content = tk.Label(self.pane_for_content, text='Text:', justify=tk.LEFT, anchor=tk.W)
-        self.entry_for_content = tk.Entry(self.pane_for_content, width=10)
+        self.text_for_content = tk.Text(self.pane_for_content, width=10)
         self.pane_for_content.add(self.lable_for_content)
-        self.pane_for_content.add(self.entry_for_content)
+        self.pane_for_content.add(self.text_for_content)
         
         self.pane_for_button = tk.PanedWindow(self.root, orient=tk.HORIZONTAL)
         self.pane_for_button.pack(fill=tk.BOTH)
@@ -293,7 +293,7 @@ class OpenSendEmailWindow:
         self.root.geometry('300x200+%d+%d'% (x,y))
         
     def SendMail(self):
-        Sender = self.parent.friend_window.email
+        sender = self.parent.friend_window.email
         recipient_name = self.entry_for_recipient.get()
         recipient_email = self.parent.model.email
         topic = self.entry_for_topic.get()
@@ -301,6 +301,7 @@ class OpenSendEmailWindow:
         '''call www's function here'''
         '''close after send'''
         self.Destroy()
+        print(sender, recipient_email, topic, text)
         
     def Destroy(self):
         self.root.destroy() 
