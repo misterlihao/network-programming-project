@@ -10,6 +10,7 @@ from win32api import RGB
 import tkinter as tk
 from tkinter.constants import HORIZONTAL
 from pip._vendor.requests.models import CONTENT_CHUNK_SIZE
+from tkinter.scrolledtext import ScrolledText
 
 online_indicate_rect = (6,6,16,16)
 oir = online_indicate_rect
@@ -279,7 +280,7 @@ class OpenSendEmailWindow:
         self.pane_for_content = tk.PanedWindow(self.root, orient=HORIZONTAL, borderwidth=7)
         self.pane_for_content.pack(fill=tk.BOTH, expand=1)
         self.lable_for_content = tk.Label(self.pane_for_content, text='Text:', justify=tk.LEFT, anchor=tk.W)
-        self.text_for_content = tk.Text(self.pane_for_content, width=10)
+        self.text_for_content = ScrolledText(self.pane_for_content, width=10, height=4)
         self.pane_for_content.add(self.lable_for_content)
         self.pane_for_content.add(self.text_for_content)
         
@@ -297,11 +298,12 @@ class OpenSendEmailWindow:
         recipient_name = self.entry_for_recipient.get()
         recipient_email = self.parent.model.email
         topic = self.entry_for_topic.get()
-        text = self.entry_for_content.get()
+        text = self.text_for_content.get(1.0, tk.END)
         '''call www's function here'''
         '''close after send'''
         self.Destroy()
-        print(sender, recipient_email, topic, text)
+        print('Sender: ',sender, 'To: ', recipient_email, 'Topic: ', topic)
+        print('Text: ', text)
         
     def Destroy(self):
         self.root.destroy() 
