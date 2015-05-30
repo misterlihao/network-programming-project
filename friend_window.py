@@ -39,6 +39,9 @@ class FriendWin:
         }
         '''we default to use character 1'''
         self.char_id = '1'
+        '''Login email GUI here to get user's email'''
+        '''if login success, return my email address to self.email'''
+        self.email = 'default@gmail.com'
         '''get friend list object'''
         self.friend_list = FriendList('friends')
         '''create list of child window'''
@@ -355,7 +358,6 @@ class OpenAddFriendWindow:
         self.button_panes.add(self.button_for_close) 
         self.button_panes.add(self.button_for_add)
         self.root.geometry('+%d+%d'% (x,y))
-        self.root.mainloop()
         
     def CommitEntry(self):
         ip = self.entry_for_ip.get()
