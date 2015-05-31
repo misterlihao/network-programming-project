@@ -579,6 +579,7 @@ class image_window:
         clean things here
         kill all tk things here
         '''
+        self.elfAutoBehaviorThread.stop = True
         with open(config_file, 'w') as file:
             file.write('readCheck:'+str(self.readCheck)+'\n')
             file.write('myCharFile:'+str(self.myCharFile)+'\n')

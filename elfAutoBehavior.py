@@ -6,6 +6,7 @@ class ElfAutoBehavior(threading.Thread):
         '''
         actionList should contain [walk, *others]
         '''
+        self.stop = False
         self.moveWindow = imageWin.MoveTo
         self.showAction = imageWin.showAction
         self.getActionPath = imageWin.getActionPath
@@ -56,7 +57,7 @@ class ElfAutoBehavior(threading.Thread):
     def run(self):
         distance = 5
         time.sleep(5)
-        while True:
+        while not self.stop:
             while self.imageWin.autoBehave == False:
                 time.sleep(2)
             x = random.randint(-1, 1) * distance
