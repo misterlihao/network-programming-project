@@ -90,9 +90,10 @@ class image_window:
         win32gui.SetWindowLong(self.hwnd, win32con.GWL_WNDPROC, self.message_map)
         '''read the configurations from file'''
         try:
+            self.readCheck=False
+            self.autoBehave = False
             self.ReadConfig()
         except Exception: 
-            self.readCheck=False
             print('no config file')  
         
         '''whether the drag action is showing'''
@@ -158,11 +159,15 @@ class image_window:
     def ReadConfig(self):
         with open(config_file) as file:
             for line in file:
+                if line[-1] == '\n':
+                    line = line[:-1]
                 cap = line.split(":")
                 if cap[0] == 'readCheck':
                     self.readCheck=bool(cap[1]=='True')
                 elif cap[0] == 'myCharFile':
                     self.myCharFile = cap[1]
+                elif cap[0] == 'autoBehave':
+                    self.autoBehave = (cap[1]=='True')
                 
     def BuildWindow(self, className):
         style = win32con.WS_POPUP|win32con.WS_VISIBLE
@@ -271,9 +276,12 @@ class image_window:
         win32gui.AppendMenu(menu, win32con.MF_STRING, 1, 'speak')
         win32gui.AppendMenu(menu, win32con.MF_STRING, 2, 'read check')
         win32gui.AppendMenu(menu, win32con.MF_STRING, 3, 'historical messages')
+        win32gui.AppendMenu(menu, win32con.MF_STRING, 5, 'auto behave')
         win32gui.AppendMenu(menu, win32con.MF_STRING, 4, 'close')
         if self.readCheck == True: #check new menu's mark
             win32gui.CheckMenuItem(menu, 2, win32con.MF_CHECKED)
+        if self.autoBehave == True:
+            win32gui.CheckMenuItem(menu, 5, win32con.MF_CHECKED)
         x, y = getXY(lparam)
         x, y = win32gui.ClientToScreen(hwnd, (x, y))
         '''show the popup menu, 0x100 means return item id right after'''
@@ -295,6 +303,9 @@ class image_window:
                 self.ShowHistoryWindow()
         elif item_id == 4:
             win32gui.DestroyWindow(self.hwnd)
+        elif item_id == 5:
+            self.autoBehave = not self.autoBehave    
+        
         win32gui.DestroyMenu(menu)
         return True
     
@@ -549,8 +560,9 @@ class image_window:
         kill all tk things here
         '''
         with open(config_file, 'w') as file:
-            file.write('readCheck:'+str(self.readCheck))
-            file.write('myCharFile:'+str(self.myCharFile))
+            file.write('readCheck:'+str(self.readCheck)+'\n')
+            file.write('myCharFile:'+str(self.myCharFile)+'\n')
+            file.write('autoBehave:'+str(self.autoBehave)+'\n')
         with open(history_file, 'a') as file:
             for each in self.this_messages:
                 file.write(each+'\n')
