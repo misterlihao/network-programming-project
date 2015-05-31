@@ -131,7 +131,7 @@ class image_window:
         '''for read cheack'''
         
         self.actionNow = None
-        actionList = ['walk.txt', 'idle.txt', 'sit.txt', 'fall.txt']
+        actionList = self.getAutoBehaviorActions()
         self.elfAutoBehaviorThread = elfAutoBehavior.ElfAutoBehavior(self, actionList)
         self.elfAutoBehaviorThread.setDaemon(True)
         self.elfAutoBehaviorThread.start()
@@ -143,6 +143,19 @@ class image_window:
             self.DoAfterConnectEstablished()
         '''for selecting the anime to send'''
         self.tmp_anime=""      
+    
+    def getAutoBehaviorActions(self):
+        path = self.getParentDirectory(self.charFile) + '/skeleton/'
+        anime_list = [f for f in os.listdir(path) if os.path.splitext(f)[1]=='.txt']
+        with open(path+'autoBehave.config') as file:
+            accept_list = [line[:-1] for line in file] 
+        result_list = ['walk.txt']
+        for anime in anime_list:
+            print(anime)
+            if accept_list.count(anime) > 0:
+                result_list.append(anime)
+                
+        return result_list
     
     def setConnectedSocket(self, sock):
         if self.conn_socket != None:

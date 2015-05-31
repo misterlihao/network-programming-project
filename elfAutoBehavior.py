@@ -3,6 +3,9 @@ import random, time, threading, ctypes, win32gui
 class ElfAutoBehavior(threading.Thread):
     
     def __init__(self, imageWin, actionList=[]):
+        '''
+        actionList should contain [walk, *others]
+        '''
         self.moveWindow = imageWin.MoveTo
         self.showAction = imageWin.showAction
         self.getActionPath = imageWin.getActionPath
