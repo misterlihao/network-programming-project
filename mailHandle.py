@@ -27,14 +27,14 @@ class Email:
         if password:
             self.password = password
         self.sHost, self.sPort, self.iHost, self.iPort = self.getServer()
-        subject = 'Welcome'
-        content = 'login success'
         try:
-            self.sendMailSmtp(self.account, subject, content, True)
+            mailServer = smtplib.SMTP_SSL(self.sHost, self.sPort)
+            mailServer.set_debuglevel(1)
+            mailServer.login(self.account, self.password)
             self.isLogin = True
             return True
         except:
-            print('Login fail')
+            self.isLogin = False
             return False
     
     def getServer(self):
@@ -63,23 +63,31 @@ class Email:
         return False
     
     def getEmail(self):
+        mailDict = {}
         if self.isLogin:
-            imapServer = imaplib.IMAP4_SSL(self.iHost, self.iPort)
-            imapServer.login(self.account, self.password)
-            imapServer.select()
-            
-            typ, msgnums = imapServer.search(None, '(FROM ''pe83aa517z@gmail.com'' )')
-            #typ, msgnums = imapServer.search(None, 'ALL')
-            mailList = []
-            for num in msgnums[0].split():
-                typ, data = imapServer.fetch(num, '(RFC822)')
-                #print('Message %s\n%s\n' % (num, data[0][1]))
-                mailList.append(self.parsingMail(data[0][1]))
+            if len(self.friends) > 0:
+                imapServer = imaplib.IMAP4_SSL(self.iHost, self.iPort)
+                imapServer.login(self.account, self.password)
+                imapServer.select()
+     
+                for friend in self.friends:
+                    mailDict[friend] = []
+                    criterionFrom = '(FROM ' + '\"' + friend + '\")'
+                    #print(criterionFrom)
+                    typ, msgnums = imapServer.search(None, criterionFrom, 'UNSEEN')
                 
-            imapServer.close()
-            imapServer.logout()
-            return mailList
-        return []
+                    for num in msgnums[0].split():
+                        typ, data = imapServer.fetch(num, '(RFC822)')
+                        mailDict[friend].append(self.parsingMail(data[0][1]))
+                #typ, msgnums = imapServer.search(None, '(FROM "pe83aa517z@gmail.com")')
+                #typ, msgnums = imapServer.search(None, '(FROM "pe83aa517z@gmail.com")', 'UNSEEN')
+                #typ, msgnums = imapServer.search(None, 'ALL')
+
+                    
+                imapServer.close()
+                imapServer.logout()
+                return mailDict
+        return mailDict
     
     def unicode(self, text, encoding=None):
         if encoding == None:
@@ -107,7 +115,6 @@ class Email:
             if not part.is_multipart():
                 contenttype = part.get_content_type()
                 filename = part.get_filename()
-                #charset = part.get_charset()
                 charset = part.get_content_charset()
                 if filename:     #is annex?
                     print(filename)
@@ -121,8 +128,8 @@ class Email:
                     elif contenttype in ['text/html']:
                         suffix = '.htm'
                         mailContent = self.remove_tags(mailContent)
-                    
-        return (strFrom, strSubject, message['Date'], mailContent, suffix)
+        #print(mailContent)
+        return (strFrom, strSubject, mailContent, message['Date'], suffix)
     
     def remove_tags(self, text):
         return ''.join(xml.etree.ElementTree.fromstring(text).itertext())
@@ -133,19 +140,22 @@ if __name__  == '__main__':
 
     account = 'bbai14915@gmail.com'
     password = 'zxc09876'
-    recipient = 'pe83aa517z@yahoo.com.tw'
+    recipient = 'pe83aa517z@gmail.com'
     subject = 'test python'
     content = 'YAPYAPYAP22'
+    friends = ['pe83aa517z@gmail.com', 'pe83aa517z@yahoo.com.tw']
     print('Start...')
-    e = Email(account, password)
+    e = Email(account, password, friends)
     #e.login(account, password)
     #e.login()
     #e.sendMailSmtp(recipient, subject, content)
-    mailList = e.getEmail()
-    for tu in mailList:
-        for mess in tu:
-            print(mess)
+    mailDict = e.getEmail()
+    
+    for list in mailDict.keys():
+        for mess in mailDict[list]:
+            for string in mess:
+                print(string)
         print() 
     print('end')
-    
+
     
