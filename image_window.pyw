@@ -42,14 +42,22 @@ def getXY(lparam):
 def turnOffTk(tk_object):
     tk_object.destroy()
 
-def getCharacter(fileName):
+'''def getCharacter(fileName):
     charFile = open(fileName, 'r')
     charData=[]
     for line in charFile.readlines():       
         charData.append(line.split())
     charFile.close()
+    return charData'''
+def getCharacter(fileName):
+    charFile = open(fileName, 'r')
+    charData=[]
+    for line in charFile.readlines():     
+        temp = line.split()
+        temp[0] = os.path.abspath(os.path.join(fileName, os.pardir))+'/'+temp[0]  
+        charData.append(temp)
+    charFile.close()
     return charData
-
 class image_window:
     '''
     modify .message_map to handle messages
@@ -151,7 +159,6 @@ class image_window:
             accept_list = [line[:-1] for line in file] 
         result_list = ['walk.txt']
         for anime in anime_list:
-            print(anime)
             if accept_list.count(anime) > 0:
                 result_list.append(anime)
                 
