@@ -20,6 +20,7 @@ import queue
 from tkinter import Entry
 import myPacket as mp
 import elfAutoBehavior
+from winsound import PlaySound, SND_ASYNC
 config_file="config"
 history_file="history"
 #execute once
@@ -711,7 +712,8 @@ class image_window:
         msg, anime = self.chatmsg_queue.get()
         self.this_messages.append(msg)
         if msg != '':
-            self.ShowNewChatMsgWin(msg)
+            self.ShowNewChatMsgWin(msg) 
+            PlaySound('skin/newmessage.wav', SND_ASYNC)
         if anime != '':
             self.showAction(self.getActionPath(anime), repeating= True)
 
