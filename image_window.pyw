@@ -92,6 +92,7 @@ class image_window:
         try:
             self.readCheck=False
             self.autoBehave = False
+            self.myCharFile = 'data/character1/character1.txt'
             self.ReadConfig()
         except Exception: 
             print('no config file')  
@@ -116,8 +117,6 @@ class image_window:
         self.ip = ip
         '''the socket , whether connected or not'''
         self.conn_socket = sock
-        ''''my character file (path of bitmaps)'''
-        self.myCharFile = 'data/cha/character1/character1.txt'
         '''the character file (path of bitmaps)'''
         self.charFile = characterFile
         '''the chat msg queue for thread to insert into
@@ -777,6 +776,7 @@ class image_window:
         return path + '/skeleton/'+action_filename
     
     def getSelfActionList(self):
+        print(self.myCharFile)
         path = self.getParentDirectory(self.myCharFile) + '/skeleton/'
         anime_list = [f for f in os.listdir(path) if os.path.splitext(f)[1]=='.txt']
         return anime_list
