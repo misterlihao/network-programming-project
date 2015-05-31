@@ -53,7 +53,9 @@ class ElfAutoBehavior(threading.Thread):
     def run(self):
         distance = 5
         time.sleep(5)
-        while True:              
+        while True:
+            while self.imageWin.autoBehave == False:
+                time.sleep(2)
             x = random.randint(-1, 1) * distance
             y = random.randint(-1, 1) * distance    
             if x == 0 and y == 0:
