@@ -12,7 +12,9 @@ from tkinter.constants import HORIZONTAL
 from pip._vendor.requests.models import CONTENT_CHUNK_SIZE
 from tkinter.scrolledtext import ScrolledText
 import SendMailWindow as smw
-
+from MailListWindow import MailListWindow
+from ReadMailWindow import ReadMailWindow
+from WM_APP_MESSAGES import WM_SHOWMAILLISTWINDOW
 online_indicate_rect = (6,6,16,16)
 oir = online_indicate_rect
 #execute once
@@ -70,6 +72,7 @@ class FriendListItemView:
             win32con.WM_PAINT: self.OnPaint,
             win32con.WM_SIZE: self.OnSize,
             win32con.WM_RBUTTONUP: self.OnRButtonUp,
+            WM_SHOWMAILLISTWINDOW: self.ShowMailListWindow, 
         }
         win32gui.SetWindowLong(self.hwnd, win32con.GWL_WNDPROC, self.message_map)
         
@@ -88,7 +91,7 @@ class FriendListItemView:
         self.friend_window = friend_window_object
         self.model = Model()
         self.SetFriendData((ip, friend_name, False, friend_id, friend_email, False))
-    
+        
     def OnSize(self, hwnd, msg, wp, lp):
         w, h = win32api.LOWORD(lp), win32api.HIWORD(lp)
         win32gui.SetWindowPos(self.chat_btn, 0, w-h*7, 0, h*3, h, win32con.SWP_NOZORDER)
@@ -122,6 +125,28 @@ class FriendListItemView:
             except :
                 self.friend_window.StartChat(self.model.friend_id)
                 win32gui.SetWindowText(self.chat_btn, 'close')
+        elif (wp>>16)&0xffff == win32con.BN_CLICKED\
+            and wp&0xffff == self.id and lp == self.mail_btn:
+            win32gui.SendMessage(self.hwnd, WM_SHOWMAILLISTWINDOW, 0, 0)
+            
+    def ShowMailListWindow(self, hwnd, msg, wp, lp):
+        self.mail_list_win = MailListWindow('<Mail>'+self.model.friend_name)
+        friend_index = None
+        for i in range(len(self.friend_window.friend_list)):
+            friend = self.friend_window.friend_list[i]
+            if friend[3] == self.model.friend_id:
+                friend_index = i
+                break
+        
+        for mail in self.friend_window.friend_new_mails[friend_index]:
+            author = mail[0]
+            subject = mail[1]
+            content = mail[2]
+            date = mail[3]
+            self.mail_list_win.insertButton(
+                text='<%s> %s'%(date, subject),
+                callback=lambda:ReadMailWindow(self.friend_window.email, author, subject, content)
+            )
     
     def OnPaint(self, hwnd, msg, wp, lp):
         '''win32 callback
