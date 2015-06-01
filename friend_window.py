@@ -62,7 +62,7 @@ class FriendWin:
         self.BuildWindow(cn)
         
         rect = win32gui.GetClientRect(self.hwnd)
-        win32gui.SetWindowPos(self.hwnd, 0, 0, 0, 250, (500-rect[3])+self.friend_list_len*24, win32con.SWP_NOMOVE|win32con.SWP_NOOWNERZORDER)
+        win32gui.SetWindowPos(self.hwnd, 0, 0, 0, 400, (500-rect[3])+self.friend_list_len*24, win32con.SWP_NOMOVE|win32con.SWP_NOOWNERZORDER)
         for i in range(len(self.friend_list)):
             if i >= self.friend_list_len:
                 break
@@ -150,8 +150,6 @@ class FriendWin:
             elif menu_id == 2:
                 point = win32gui.GetCursorPos()
                 OpenAddFriendWindow(point[0], point[1], self)
-                
-                
         
     def OnSysCommand(self, hwnd, msg, wp, lp):
         '''win32 callback, edit to control
@@ -208,6 +206,20 @@ class FriendWin:
                     item.model.online = not item.model.online
                     win32gui.InvalidateRect(item.hwnd, (FLI.online_indicate_rect),True)
 
+    def SetFriendNewMailStatus(self, index, new_mail_status):
+        '''index: index of friendList; mew_mail_status: True of False''' 
+        self.friend_list[index][5] = new_mail_status
+        #if friend is in friend_list_item_list, refresh it
+        if index >= self.friend_first_index:
+            self.refreshFriendListItem(index-self.friend_first_index)
+        
+    def refreshFriendListItem(self, index):
+        '''make friend_list_item window show current status
+           index: index of friend_list_item windows, not of friendList'''
+        item = self.friend_list_item_list[index]
+        item.SetFriendData(self.friend_list[index + self.friend_first_index])
+        win32gui.InvalidateRect(item.hwnd, None, True)
+
     def OnMouseWheel(self, hwnd, msg, wp, lp):
         delta = wp>>16
         if delta//win32con.WHEEL_DELTA == 0:
@@ -227,10 +239,7 @@ class FriendWin:
             self.friend_first_index = len(self.friend_list) - self.friend_list_len
             
         for i in range(self.friend_list_len):
-            item = self.friend_list_item_list[i]
-            item.SetFriendData(self.friend_list[i+self.friend_first_index])
-            win32gui.InvalidateRect(item.hwnd, None, True)
-            
+            self.refreshFriendListItem(i)
         return True
     
     def OnDestroy(self, hwnd, msg, wp, lp):
@@ -304,7 +313,10 @@ class FriendWin:
                 chat_win.setConnectedSocket(sock)
                 return
         
-        for (ip, name, status, id, email) in self.friend_list:
+        for friend in self.friend_list:
+            ip = friend[0]
+            name = friend[1]
+            id = friend[3]
             if id == friend_id:
                 self.chat_wins.append(image_window(
                     self.OnChatClosed, 
@@ -373,7 +385,6 @@ if __name__ == '__main__':
     mainwin = FriendWin()
     
     '''play as a remote user to test recving functions'''
-    
     # end win32 windows
     win32gui.PumpMessages()
     print('end')
