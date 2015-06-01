@@ -96,9 +96,9 @@ class FriendWin:
         myThread.setDaemon(True)
         myThread.start()
         '''check new email'''
-        #myThread = threading.Thread(target=self.checkEmail)
-        #myThread.setDaemon(True)
-        #myThread.start()
+        myThread = threading.Thread(target=self.checkEmail)
+        myThread.setDaemon(True)
+        myThread.start()
         
         self.tk_mainloop = tk.Tk()
         self.tk_mainloop.withdraw()
@@ -296,14 +296,28 @@ class FriendWin:
     
     def checkEmail(self):
         email = mailHandle.Email()
+        isChange = True
+        strEmail = self.email
+        email_passwd = self.email_passwd
         while True:
-            if email.login(self.email, self.email_passwd):
+            if isChange and (email.login(self.email, self.email_passwd)):
                 break
             time.sleep(5)
+            if (strEmail == self.email) and (email_passwd == self.email_passwd):
+                isChange = False
+            else:
+                strEmail = self.email
+                email_passwd = self.email_passwd
+                isChange = True
         while True:
             friends = getFriendsEmail
             email.setFriends(friends)
             mailDict = email.getEmail()
+            if mailDict:
+                myThread = threading.Thread(target=self.checkEmail)
+                myThread.setDaemon(True)
+                myThread.start()
+                return
             for key in mailDict.keys():
                 for index in range(len(self.friend_list)):
                     friend = self.friend_list[index]
@@ -311,8 +325,7 @@ class FriendWin:
                         self.SetFriendNewMail(index, True, mailDict[key])
                         break
             time.sleep(60)
-  
-        
+     
     
     def recvVersionAndUpdata(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

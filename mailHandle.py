@@ -26,6 +26,8 @@ mailHandke.getEmail()
     it will return dictionary with keys are friend and value is a List
     the one of List value  is a email data
     the data is a tuple (strFrom, strSubject, strContent, strDate, strsSuffix)
+    it will return None if connection error
+    
     
 '''
 import os
@@ -95,26 +97,30 @@ class Email:
     
     def getEmail(self):
         mailDict = {}
-        if self.isLogin:
-            if len(self.friends) > 0:
-                imapServer = imaplib.IMAP4_SSL(self.iHost, self.iPort)
-                imapServer.login(self.account, self.password)
-                imapServer.select()
-     
-                for friend in self.friends:
-                    mailDict[friend] = []
-                    criterionFrom = '(FROM ' + '\"' + friend + '\")'
-                    typ, msgnums = imapServer.search(None, criterionFrom, 'UNSEEN')
-                    #typ, msgnums = imapServer.search(None, criterionFrom)
-                    for num in msgnums[0].split():
-                        typ, data = imapServer.fetch(num, '(RFC822)')
-                        mailDict[friend].append(self.parsingMail(data[0][1]))
-
-
-                    
-                imapServer.close()
-                imapServer.logout()
-                return mailDict
+        try:
+            if self.isLogin:
+                if len(self.friends) > 0:
+                    imapServer = imaplib.IMAP4_SSL(self.iHost, self.iPort)
+                    imapServer.login(self.account, self.password)
+                    imapServer.select()
+         
+                    for friend in self.friends:
+                        mailDict[friend] = []
+                        criterionFrom = '(FROM ' + '\"' + friend + '\")'
+                        typ, msgnums = imapServer.search(None, criterionFrom, 'UNSEEN')
+                        #typ, msgnums = imapServer.search(None, criterionFrom)
+                        for num in msgnums[0].split():
+                            typ, data = imapServer.fetch(num, '(RFC822)')
+                            mailDict[friend].append(self.parsingMail(data[0][1]))
+    
+    
+                        
+                    imapServer.close()
+                    imapServer.logout()
+                    return mailDict
+        except:
+            print('getEmail error')
+            return None
         return mailDict
     
     def unicode(self, text, encoding=None):
