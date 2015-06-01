@@ -11,6 +11,7 @@ import tkinter as tk
 from tkinter.constants import HORIZONTAL
 from pip._vendor.requests.models import CONTENT_CHUNK_SIZE
 from tkinter.scrolledtext import ScrolledText
+import SendMailWindow as smw
 
 online_indicate_rect = (6,6,16,16)
 oir = online_indicate_rect
@@ -171,8 +172,7 @@ class FriendListItemView:
             except Exception:
                 self.ShowEditWindow()
         elif item_id ==2:
-            point = win32gui.GetCursorPos()
-            OpenSendEmailWindow(point[0], point[1], self)
+            smw.SendMailWindow(self.friend_window.email, self.model.email)
                 
         win32gui.DestroyMenu(menu)
         return True
@@ -252,61 +252,6 @@ class FriendListItemView:
         x = win32gui.GetWindowRect(self.hwnd)[0]
         y = win32gui.GetWindowRect(self.hwnd)[3]
         return x,y
- 
-class OpenSendEmailWindow:
-    def __init__(self, x, y, parent_obeject):
-        '''
-        create the add friend window.
-        '''
-        self.parent = parent_obeject
-        self.root = tk.Tk()
-        self.root.title('Send email to '+parent_obeject.model.friend_name)
-        
-        self.pane_for_recipient = tk.PanedWindow(self.root,orient=tk.HORIZONTAL, borderwidth=5)
-        self.pane_for_recipient.pack(fill=tk.BOTH)
-        self.lable_for_recipient = tk.Label(self.pane_for_recipient, text='To:', width=5, justify=tk.LEFT, anchor=tk.W)
-        self.entry_for_recipient = tk.Entry(self.pane_for_recipient, width=10)
-        self.entry_for_recipient.insert(0, parent_obeject.model.friend_name)
-        self.pane_for_recipient.add(self.lable_for_recipient)
-        self.pane_for_recipient.add(self.entry_for_recipient)
-        
-        self.pane_for_topic = tk.PanedWindow(self.root, orient=tk.HORIZONTAL, borderwidth=5)
-        self.pane_for_topic.pack(fill=tk.BOTH)
-        self.lable_for_topic = tk.Label(self.pane_for_topic, text='Topic:', width=5, justify=tk.LEFT, anchor=tk.W)
-        self.entry_for_topic = tk.Entry(self.pane_for_topic, width=10)
-        self.pane_for_topic.add(self.lable_for_topic)
-        self.pane_for_topic.add(self.entry_for_topic)
-        
-        self.pane_for_content = tk.PanedWindow(self.root, orient=HORIZONTAL, borderwidth=7)
-        self.pane_for_content.pack(fill=tk.BOTH, expand=1)
-        self.lable_for_content = tk.Label(self.pane_for_content, text='Text:', justify=tk.LEFT, anchor=tk.W)
-        self.text_for_content = ScrolledText(self.pane_for_content, width=10, height=4)
-        self.pane_for_content.add(self.lable_for_content)
-        self.pane_for_content.add(self.text_for_content)
-        
-        self.pane_for_button = tk.PanedWindow(self.root, orient=tk.HORIZONTAL)
-        self.pane_for_button.pack(fill=tk.BOTH)
-        self.button_for_add = tk.Button(self.pane_for_button, text="Send", command=self.SendMail)
-        self.button_for_close = tk.Button(self.pane_for_button, text="Exit", command=self.Destroy, width=5)
-        self.pane_for_button.add(self.button_for_close) 
-        self.pane_for_button.add(self.button_for_add)
-        
-        self.root.geometry('300x200+%d+%d'% (x,y))
-        
-    def SendMail(self):
-        sender = self.parent.friend_window.email
-        recipient_name = self.entry_for_recipient.get()
-        recipient_email = self.parent.model.email
-        topic = self.entry_for_topic.get()
-        text = self.text_for_content.get(1.0, tk.END)
-        '''call www's function here'''
-        '''close after send'''
-        self.Destroy()
-        print('Sender: ',sender, 'To: ', recipient_email, 'Topic: ', topic)
-        print('Text: ', text)
-        
-    def Destroy(self):
-        self.root.destroy() 
     
 item_id_acc = 0
 def create(friend_window_object, friend_name, ip, friend_id, email, x, y, w, h):
