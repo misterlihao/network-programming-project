@@ -45,7 +45,7 @@ class FriendWin:
         '''get friend list object'''
         self.friend_list = FriendList('friends')
         '''storage of mails'''
-        self.friend_new_mails = [[('god', 'title', 'content\ncontent2', '1993/01/01', ''), ('god', 'title', 'content\ncontent2', '1993/01/01', '')]for f in self.friend_list]
+        self.friend_new_mails = []for f in self.friend_list]
         '''create list of child window'''
         self.friend_list_item_list = []
         '''for thread to insert new connections into

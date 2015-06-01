@@ -90,7 +90,7 @@ class FriendListItemView:
             None)
         self.friend_window = friend_window_object
         self.model = Model()
-        self.SetFriendData((ip, friend_name, False, friend_id, friend_email, True))
+        self.SetFriendData((ip, friend_name, False, friend_id, friend_email, False))
         
     def OnSize(self, hwnd, msg, wp, lp):
         w, h = win32api.LOWORD(lp), win32api.HIWORD(lp)
