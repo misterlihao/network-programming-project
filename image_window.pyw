@@ -20,6 +20,7 @@ import queue
 from tkinter import Entry
 import myPacket as mp
 import elfAutoBehavior
+import mailHandle
 from winsound import PlaySound, SND_ASYNC
 config_file="config"
 history_file="history"
@@ -133,6 +134,8 @@ class image_window:
         self.chatmsg_queue = queue.Queue()
         '''the chat msg window showing'''
         self.chat_msg_win = []
+        '''offline Message string'''
+        self.cht_str_msg = ''
         '''the sent msg window showing'''
         self.sent_msg_win = None
         print('the path input image_window get: ',self.getActionPath('idle.txt'))
@@ -544,6 +547,9 @@ class image_window:
         if self.conn_socket == None:
             self.conn_socket = mt.StartTalking(self.ip)
             if self.conn_socket == None:
+                msg = self.input_text.get()
+                self.cht_str_msg += msg + '\n'
+                print(self.cht_str_msg)
                 return 
             
             myThread = threading.Thread(target=self.sendVersionAndUpdata)

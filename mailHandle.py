@@ -6,21 +6,21 @@ mailHandle.Email(account[, password][, friends])
     friends is List
     
 mailHandle.setFriends([friends])
-    friends is List
+    friends is List with value string(friend name)
     set users friends which want to getEmail()  
     
 mailHandle.login([account[, password]])
     account and password are string(users email account and password)
     should use login() and Success before sendMailSmtp() and getEmail(), 
     Otherwise it will not be executed
-    it will retrun Boolean to tell Login status
+    it will return Boolean to tell Login status
 
 mailHandle.sendMailSmtp(recipient, subject, content)
     recipient, subject and content are string
     recipient is email recipient
     subject is email subject
     content is email content
-    it will retrun Boolean to tell successful or not
+    it will return Boolean to tell successful or not
     
 mailHandke.getEmail()
     it will return dictionary with keys are friend and value is a List

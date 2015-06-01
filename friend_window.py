@@ -2,6 +2,7 @@
 @author: misterlihao
 This is supposed to be main window
 '''
+import mailHandle
 from synchronizationRole import updataIfNeed
 import friend_list_item as FLI
 import win32gui, win32api, win32con
@@ -90,6 +91,10 @@ class FriendWin:
         myThread = threading.Thread(target=self.recvVersionAndUpdata)
         myThread.setDaemon(True)
         myThread.start()
+        '''check new email'''
+        #myThread = threading.Thread(target=self.checkEmail)
+        #myThread.setDaemon(True)
+        #myThread.start()
         
         self.tk_mainloop = tk.Tk()
         self.tk_mainloop.withdraw()
@@ -259,6 +264,28 @@ class FriendWin:
         win32gui.DestroyMenu(self.menubar)
         win32gui.PostQuitMessage(0)
         return win32gui.DefWindowProc(hwnd, msg, wp, lp)
+    
+    def getFriendsEmail(self):
+        friends = []
+        for frined in self.friend_list:
+            if frined[4] != '':
+                friends.append(frined[4])
+        return friends
+    
+    def checkEmail(self):
+        email = mailHandle.Email()
+        email.login(self.email_address, self.email_passwd)
+        while True:
+            friends = getFriendsEmail
+            email.setFriends(friends)
+            mailDict = email.getEmail()
+            for key in mailDict.keys():
+                for frined in self.friend_list:
+                    if frined[4] == key:
+                        self.SetFriendNewMailStatus(True, True)
+                        break
+  
+        
     
     def recvVersionAndUpdata(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
