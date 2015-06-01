@@ -35,15 +35,16 @@ class Model:
     '''
     for data storage
     '''
-    def __init__(self, ip, friend_name, online, id, email):
-        self.set(friend_name, ip, online, id, email)
+    def __init__(self):    
+        pass
     
-    def set(self, ip, friend_name, online, id, email):
+    def set(self, ip, friend_name, online, id, email, new_mail):
         self.friend_name = friend_name
         self.online = online
         self.friend_id = id
         self.ip = ip
         self.email = email
+        self.new_mail = new_mail
     
 class FriendListItemView:
     '''
@@ -55,7 +56,6 @@ class FriendListItemView:
         friend_name stores the name of the friend it represents
         ip is the friend's address
         '''
-        self.model = Model(ip, friend_name, False, friend_id, friend_email)
         self.id = _id
         self.hwnd = win32gui.CreateWindow(
             "window_list_item","",
@@ -79,12 +79,21 @@ class FriendListItemView:
             w-70, 0, 70, 24, self.hwnd, _id,
             win32gui.GetModuleHandle(None),
             None)
+        self.mail_btn = win32gui.CreateWindow(
+            "Button","new mail",
+            win32con.WS_VISIBLE|win32con.WS_CHILD|win32con.BS_PUSHBUTTON,
+            w-100, 0, 100, 24, self.hwnd, _id,
+            win32gui.GetModuleHandle(None),
+            None)
         self.friend_window = friend_window_object
+        self.model = Model()
+        self.SetFriendData((ip, friend_name, False, friend_id, friend_email, False))
     
     def OnSize(self, hwnd, msg, wp, lp):
         w, h = win32api.LOWORD(lp), win32api.HIWORD(lp)
-        win32gui.SetWindowPos(self.chat_btn, 0, w-h*3, 0, h*3, h, win32con.SWP_NOZORDER)
-        
+        win32gui.SetWindowPos(self.chat_btn, 0, w-h*7, 0, h*3, h, win32con.SWP_NOZORDER)
+        win32gui.SetWindowPos(self.mail_btn, 0, w-h*4, 0, h*4, h, win32con.SWP_NOZORDER)
+    
     def SetFriendData(self, friend_data):
         '''friend_data: a list of form in friendList'''
         self.model.set(*friend_data)
@@ -92,6 +101,7 @@ class FriendListItemView:
             win32gui.SetWindowText(self.chat_btn, 'chat')
         else:
             win32gui.SetWindowText(self.chat_btn, 'close')
+        win32gui.EnableWindow(self.mail_btn, self.model.new_mail)
         
     def StartChat(self):    
         '''WARNNING!! don't use it anymore. USE StartChat() in frien_window!!'''
@@ -254,7 +264,7 @@ class FriendListItemView:
         return x,y
     
 item_id_acc = 0
-def create(friend_window_object, friend_name, ip, friend_id, email, x, y, w, h):
+def create(friend_window_object, ip, friend_name, friend_id, email, x, y, w, h):
     '''
     return a item window
     should have a parent at creation moment,
