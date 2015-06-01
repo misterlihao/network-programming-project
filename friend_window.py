@@ -44,6 +44,8 @@ class FriendWin:
         self.email = 'default@gmail.com'
         '''get friend list object'''
         self.friend_list = FriendList('friends')
+        '''storage of mails'''
+        self.friend_new_mails = [[('god', 'title', 'content\ncontent2', '1993/01/01', ''), ('god', 'title', 'content\ncontent2', '1993/01/01', '')]for f in self.friend_list]
         '''create list of child window'''
         self.friend_list_item_list = []
         '''for thread to insert new connections into
@@ -206,12 +208,14 @@ class FriendWin:
                     item.model.online = not item.model.online
                     win32gui.InvalidateRect(item.hwnd, (FLI.online_indicate_rect),True)
 
-    def SetFriendNewMailStatus(self, index, new_mail_status):
-        '''index: index of friendList; mew_mail_status: True of False''' 
+    def SetFriendNewMail(self, index, new_mail_status, new_mails):
+        '''index: index of friendList; mew_mail_status: True of False
+            new_mails: new mails list to insert in''' 
         self.friend_list[index][5] = new_mail_status
         #if friend is in friend_list_item_list, refresh it
         if index >= self.friend_first_index:
             self.refreshFriendListItem(index-self.friend_first_index)
+        self.friend_new_mails[index].expand(new_mails)
         
     def refreshFriendListItem(self, index):
         '''make friend_list_item window show current status
