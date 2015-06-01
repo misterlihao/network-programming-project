@@ -538,6 +538,11 @@ class image_window:
         value = widget.get(selection[0])
         self.tmp_anime = value
         
+    def set_cht_str_msg(self):
+        msg = self.input_text.get()
+        self.input_text.delete(0, tk.END)
+        self.cht_str_msg += msg + '\n'
+        
     def SendText(self):
         '''
         SendText to remote chatter
@@ -547,9 +552,7 @@ class image_window:
         if self.conn_socket == None:
             self.conn_socket = mt.StartTalking(self.ip)
             if self.conn_socket == None:
-                msg = self.input_text.get()
-                self.cht_str_msg += msg + '\n'
-                print(self.cht_str_msg)
+                self.set_cht_str_msg()
                 return 
             
             myThread = threading.Thread(target=self.sendVersionAndUpdata)

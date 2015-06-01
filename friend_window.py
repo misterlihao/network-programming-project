@@ -21,6 +21,7 @@ from test.test_heapq import SideEffectLT
 from tkinter.tix import COLUMN
 from tkinter.constants import BOTH
 from image_window import image_window
+from time import sleep
 class FriendWin:
     '''
     the main window
@@ -43,10 +44,11 @@ class FriendWin:
         '''Login email GUI here to get user's email'''
         '''if login success, return my email address to self.email'''
         self.email = 'default@gmail.com'
+        self.email_passwd = ''
         '''get friend list object'''
         self.friend_list = FriendList('friends')
         '''storage of mails'''
-        self.friend_new_mails = []for f in self.friend_list]
+        self.friend_new_mails = [[]for f in self.friend_list]
         '''create list of child window'''
         self.friend_list_item_list = []
         '''for thread to insert new connections into
@@ -211,7 +213,23 @@ class FriendWin:
                 if item.IdIsMe(self.friend_list[index][3]): 
                     print('friend in list')
                     item.model.online = not item.model.online
+                    if item.model.online:
+                        print(self.friend_list[index][1])
+                        chat_win = self.GetChatWin(self.friend_list[index][3])
+                        if chat_win:
+                            self.sendMessageFrom_cht_str_msg(chat_win)
+
                     win32gui.InvalidateRect(item.hwnd, (FLI.online_indicate_rect),True)
+
+    def sendMessageFrom_cht_str_msg(self, chat_win):
+        if chat_win.cht_str_msg == '':
+            return 
+        for msg in chat_win.cht_str_msg.split('\n'):
+            mt.SendMessageAndAnime(chat_win.conn_socket, chat_win.input_text.get(), chat_win.tmp_anime)
+            chat_win.this_messages.append(msg)
+            chat_win.sended_message_read = False #no need but on logical
+            chat_win.showSentChatMsgWin(msg)
+        chat_win.cht_str_msg == ''
 
     def SetFriendNewMail(self, index, new_mail_status, new_mails):
         '''index: index of friendList; mew_mail_status: True of False
@@ -278,16 +296,21 @@ class FriendWin:
     
     def checkEmail(self):
         email = mailHandle.Email()
-        email.login(self.email_address, self.email_passwd)
+        while True:
+            if email.login(self.email, self.email_passwd):
+                break
+            time.sleep(5)
         while True:
             friends = getFriendsEmail
             email.setFriends(friends)
             mailDict = email.getEmail()
             for key in mailDict.keys():
-                for frined in self.friend_list:
-                    if frined[4] == key:
-                        self.SetFriendNewMailStatus(True, True)
+                for index in range(len(self.friend_list)):
+                    friend = self.friend_list[index]
+                    if frined[4] == key:                        
+                        self.SetFriendNewMail(index, True, mailDict[key])
                         break
+            time.sleep(60)
   
         
     
@@ -369,8 +392,31 @@ class FriendWin:
         for item in self.friend_list_item_list:
             if item.model.friend_id == chat_win.friendID:
                 item.OnChatClosed()
+                
+        self.sendOfflineMessage(chat_win)
         
         self.chat_wins.remove(chat_win)
+        
+    def sendOfflineMessage(self, chat_win):
+        strContent = chat_win.cht_str_msg
+        if strContent == '':
+            return True
+        recipient = ''
+        for index in range(len(self.friend_list)):
+            friend = self.friend_list[index]
+            if friend[1] == chat_win.chat_name:
+                recipient = friend[4]
+                break
+        if recipient == '':
+            return False
+        strSubject = 'Message from ' + chat_win.chat_name
+
+        email = mailHandle.Email()
+        if email.login(self.email, self.email_passwd):
+            if email.sendMailSmtp(recipient, strSubject, strContent):
+                return True
+        return False
+        
         
 class OpenAddFriendWindow:
     def __init__(self, x, y, parent_obeject):

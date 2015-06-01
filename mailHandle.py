@@ -168,7 +168,7 @@ if __name__  == '__main__':
     password = 'zxc09876'
     recipient = 'pe83aa517z@gmail.com'
     subject = 'test python'
-    content = 'YAPYAPYAP22'
+    content = 'YAPYAPYAP22\n'
     friends = ['pe83aa517z@gmail.com', 'pe83aa517z@yahoo.com.tw']
     print('Start...')
     #e = Email(account, password, friends)
@@ -183,7 +183,7 @@ if __name__  == '__main__':
         for mess in mailDict[list]:
             for string in mess:
                 print(string)
-        print() 
+        print()
     print('end')
 
     
