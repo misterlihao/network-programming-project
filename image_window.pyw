@@ -473,12 +473,12 @@ class image_window:
     
     def GetHistoryString(self):
         '''
-        read histroy file and make it pretty
-        return a prettt string for histroy window display
+        read history file and make it pretty
+        return a pretty string for history window display
         '''
         s = ''
         try:
-            with open('history') as file:
+            with open('data/'+str(self.friendID)+'/'+history_file) as file:
                 for line in file.read().splitlines():
                     s += line+'\n'
         except Exception:pass
@@ -562,7 +562,7 @@ class image_window:
         
         mt.SendMessageAndAnime(self.conn_socket, self.input_text.get(), self.tmp_anime)
         msg = self.input_text.get()
-        self.this_messages.append(msg)
+        self.this_messages.append('you: '+msg)
         '''1.send new message so readCheck set to False'''
         self.sended_message_read = False #no need but on logical
         self.showSentChatMsgWin(msg)
@@ -593,7 +593,7 @@ class image_window:
             file.write('readCheck:'+str(self.readCheck)+'\n')
             file.write('myCharFile:'+str(self.myCharFile)+'\n')
             file.write('autoBehave:'+str(self.autoBehave)+'\n')
-        with open(history_file, 'a') as file:
+        with open('data/'+str(self.friendID)+'/'+history_file, 'a') as file:
             for each in self.this_messages:
                 file.write(each+'\n')
         
@@ -717,10 +717,10 @@ class image_window:
         Called when recv msg
         it's in the main thread, so dealing with gui is safe.
         
-        maybe add histroy here
+        maybe add history here
         '''
         msg, anime = self.chatmsg_queue.get()
-        self.this_messages.append(msg)
+        self.this_messages.append(self.chat_name+': '+msg)
         if msg != '':
             self.ShowNewChatMsgWin(msg) 
             PlaySound('skin/newmessage.wav', SND_ASYNC)
