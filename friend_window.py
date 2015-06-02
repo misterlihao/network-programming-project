@@ -210,12 +210,15 @@ class FriendWin:
         for index in self.updated_friends:
             print('find friend:', self.friend_list[index][1])
             for item in self.friend_list_item_list:
-                if item.IdIsMe(self.friend_list[index][3]): 
+                friend_id = self.friend_list[index][3]
+                if item.IdIsMe(friend_id): 
                     print('friend in list')
                     item.model.online = not item.model.online
+                    chat_win = self.GetChatWin(friend_id)
+                    if chat_win:
+                        chat_win.online = item.model.online
                     if item.model.online:
                         print(self.friend_list[index][1])
-                        chat_win = self.GetChatWin(self.friend_list[index][3])
                         if chat_win:
                             self.sendMessageFrom_cht_str_msg(chat_win)
 

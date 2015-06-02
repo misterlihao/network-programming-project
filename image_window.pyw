@@ -107,6 +107,8 @@ class image_window:
         except Exception: 
             print('no config file')  
         
+        '''whether chatter is online'''
+        self.online = False
         '''whether the drag action is showing'''
         self.drag_showing = False
         '''whether character is being dragged''' 
@@ -550,7 +552,8 @@ class image_window:
         '''get the speak_window handle'''
         speak_window_hwnd = win32gui.GetForegroundWindow()
         if self.conn_socket == None:
-            self.conn_socket = mt.StartTalking(self.ip)
+            if self.online == True:
+                self.conn_socket = mt.StartTalking(self.ip)
             if self.conn_socket == None:
                 self.set_cht_str_msg()
                 return 
