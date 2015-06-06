@@ -207,7 +207,7 @@ class FriendListItemView:
             except Exception:
                 self.ShowEditWindow()
         elif item_id ==2:
-            smw.SendMailWindow(self.friend_window.email, self.model.email)
+            smw.SendMailWindow(self.friend_window.email, self.model.email, self.friend_window.email_passwd)
                 
         win32gui.DestroyMenu(menu)
         return True

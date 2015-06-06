@@ -506,7 +506,7 @@ class OpenLogInWindow:
         account=self.account_entry.get()
         password=self.password_entry.get()
         myEmail = mh.Email(account, password)
-        success = myEmail.login(account, password)
+        success = myEmail.login()
         if success==True:
             parent.email=account
             parent.email_passwd=password
