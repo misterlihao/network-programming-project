@@ -481,6 +481,7 @@ class OpenAddFriendWindow:
         
 class OpenLogInWindow:
     def __init__(self, parent):
+        self.friend_window=parent
         self.root=tk.Tk()
         self.root.title('Enter account/passwarod to log in')
         self.account_panew=tk.PanedWindow(self.root, orient=tk.HORIZONTAL)
@@ -508,8 +509,8 @@ class OpenLogInWindow:
         myEmail = mh.Email(account, password)
         success = myEmail.login()
         if success==True:
-            parent.email=account
-            parent.email_passwd=password
+            self.friend_window.email=account
+            self.friend_window.email_passwd=password
             self.Destory()
         else:
             self.account_entry.delete(0, tk.END)

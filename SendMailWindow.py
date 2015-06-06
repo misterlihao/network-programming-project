@@ -5,7 +5,7 @@ import mailHandle as mh
 import friend_window as fw
 
 class SendMailWindow:
-    def __init__(self, sender_mail,  recipient_mail, pwd):
+    def __init__(self, sender_mail,  recipient_mail, pwd, friend_window):
         '''
         create the add friend window.
         '''
@@ -15,6 +15,7 @@ class SendMailWindow:
         self.sender_mail = sender_mail
         self.recipient_mail = recipient_mail
         self.password = pwd
+        self.friend_window = friend_window
         self.pane_for_recipient = tk.PanedWindow(self.root,orient=tk.HORIZONTAL, borderwidth=5)
         self.pane_for_recipient.pack(fill=tk.BOTH)
         self.lable_for_recipient = tk.Label(self.pane_for_recipient, text='To:', width=5, justify=tk.LEFT, anchor=tk.W)
@@ -55,17 +56,18 @@ class SendMailWindow:
         text = self.text_for_content.get(1.0, tk.END)
         '''call www's function here'''
         myEmail = mh.Email(sender, password)
-        while (myEmail.login()!=True):
-            fw.OpenLogInWindow()
-        myEmail.sendMailSmtp(self.recipient_mail, topic, text)
-        '''close after send'''
-        self.Destroy()
-        print('Sender: ',sender, '\nTo: ', recipient_email, '\nTopic: ', topic)
-        print('Text: \n', text)
+        if myEmail.login()!=True:
+            fw.OpenLogInWindow(self.friend_window)
+        else:
+            myEmail.sendMailSmtp(self.recipient_mail, topic, text)
+            '''close after send'''
+            self.Destroy()
+            print('Sender: ',sender, '\nTo: ', recipient_email, '\nTopic: ', topic)
+            print('Text: \n', text)
         
     def Destroy(self):
         self.root.destroy() 
         
 if __name__=='__main__':
-    mySMW = SendMailWindow('DefaultSender@gmail.com', 'DefaultReceiver', 'DefaultReceiver@gmail.com')
+    mySMW = SendMailWindow('DefaultSender@gmail.com', 'DefaultReceiver', 'DefaultReceiver@gmail.com', 'defaultPassword')
     mySMW.root.mainloop()
