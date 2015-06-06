@@ -22,6 +22,7 @@ from tkinter.tix import COLUMN
 from tkinter.constants import BOTH
 from image_window import image_window
 from time import sleep
+import mailHandle as mh
 class FriendWin:
     '''
     the main window
@@ -100,6 +101,8 @@ class FriendWin:
         myThread.setDaemon(True)
         myThread.start()
         
+        point = win32gui.GetCursorPos()
+        OpenLogInWindow(self)
         self.tk_mainloop = tk.Tk()
         self.tk_mainloop.withdraw()
         self.tk_mainloop.mainloop()
@@ -132,6 +135,7 @@ class FriendWin:
         self.menubar = win32gui.CreateMenu()
         win32gui.AppendMenu(self.menubar, win32con.MF_STRING, 1, 'search ip')
         win32gui.AppendMenu(self.menubar, win32con.MF_STRING, 2, 'add new friend')
+        win32gui.AppendMenu(self.menubar, win32con.MF_STRING, 3, 'log in')
         win32gui.SetMenu(self.hwnd, self.menubar)
     
     def OnSize(self, hwnd, msg, wp, lp):
@@ -159,6 +163,8 @@ class FriendWin:
             elif menu_id == 2:
                 point = win32gui.GetCursorPos()
                 OpenAddFriendWindow(point[0], point[1], self)
+            elif menu_id == 3:
+                OpenLogInWindow(self)
         
     def OnSysCommand(self, hwnd, msg, wp, lp):
         '''win32 callback, edit to control
@@ -471,6 +477,45 @@ class OpenAddFriendWindow:
         self.parent.friend_list.AddNewFriend(ip, name, email) 
         
     def Destroy(self):
+        self.root.destroy()
+        
+class OpenLogInWindow:
+    def __init__(self, parent):
+        self.root=tk.Tk()
+        self.root.title('Enter account/passwarod to log in')
+        self.account_panew=tk.PanedWindow(self.root, orient=tk.HORIZONTAL)
+        self.password_panew=tk.PanedWindow(self.root, orient=tk.HORIZONTAL)
+        self.button_panew=tk.PanedWindow(self.root, orient=tk.HORIZONTAL)
+        self.account_panew.pack(fill=BOTH)
+        self.password_panew.pack(fill=BOTH)
+        self.button_panew.pack(fill=BOTH)
+        self.account_label=tk.Label(self.account_panew, text='Account: ')
+        self.account_entry=tk.Entry(self.account_panew, width=10)
+        self.password_label=tk.Label(self.password_panew, text="password: ")
+        self.password_entry=tk.Entry(self.password_panew, width=10, show="*")
+        self.account_panew.add(self.account_label)
+        self.account_panew.add(self.account_entry)
+        self.password_panew.add(self.password_label)
+        self.password_panew.add(self.password_entry)
+        self.login_btn=tk.Button(self.button_panew, text='Login', command=self.login)
+        self.close_btn=tk.Button(self.button_panew, text='Close', command=self.Destory)
+        self.button_panew.add(self.login_btn)
+        self.button_panew.add(self.close_btn)
+        
+    def login(self):
+        account=self.account_entry.get()
+        password=self.password_entry.get()
+        myEmail = mh.Email(account, password)
+        success = myEmail.login(account, password)
+        if success==True:
+            parent.email=account
+            parent.email_passwd=password
+            self.Destory()
+        else:
+            self.account_entry.delete(0, tk.END)
+            self.account_entry.insert(0, 'Login Failed!')
+        
+    def Destory(self):
         self.root.destroy()
         
 import time
