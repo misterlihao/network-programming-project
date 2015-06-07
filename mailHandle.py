@@ -105,12 +105,16 @@ class Email:
                     imapServer.select()
          
                     for friend in self.friends:
-                        mailDict[friend] = []
+                        #mailDict[friend] = []
                         criterionFrom = '(FROM ' + '\"' + friend + '\")'
                         typ, msgnums = imapServer.search(None, criterionFrom, 'UNSEEN')
                         #typ, msgnums = imapServer.search(None, criterionFrom)
+                        isfirst=True
                         for num in msgnums[0].split():
                             typ, data = imapServer.fetch(num, '(RFC822)')
+                            if isfirst:
+                                isfirst = False
+                                mailDict[friend] = []
                             mailDict[friend].append(self.parsingMail(data[0][1]))
     
     
