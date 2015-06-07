@@ -111,7 +111,6 @@ class FriendWin:
         myThread.start()
         
         point = win32gui.GetCursorPos()
-        OpenLogInWindow()
         self.tk_mainloop = tk.Tk()
         self.tk_mainloop.withdraw()
         self.tk_mainloop.mainloop()
