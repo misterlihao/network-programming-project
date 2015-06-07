@@ -46,6 +46,12 @@ class FriendWin:
         '''if login success, return my email address to self.email'''
         self.email = 'default@gmail.com'
         self.email_passwd = ''
+        with open('acpwd.txt') as file:
+            for line in file:
+                acpwd = line.split(':')
+                self.email = acpwd[0]
+                self.email_passwd = acpwd[1]
+                print(acpwd)
         '''get friend list object'''
         self.friend_list = FriendList('friends')
         '''storage of mails'''
