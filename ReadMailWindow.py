@@ -57,7 +57,7 @@ class ReadMailWindow:
         
 
     def Reply(self):
-        self.SMW = smw.SendMailWindow(self.receiver, self.sender)
+        self.SMW = smw.SendMailWindow(self.receiver, self.sender, self.friend_window.email_passwd)
         self.SMW.text_for_content.insert(1.0, '\n\n---------------\n'+self.text)
         #self.root.destroy()
     

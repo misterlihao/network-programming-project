@@ -5,7 +5,7 @@ import mailHandle as mh
 import friend_window as fw
 
 class SendMailWindow:
-    def __init__(self, sender_mail,  recipient_mail, pwd, friend_window):
+    def __init__(self, sender_mail,  recipient_mail, pwd):
         '''
         create the add friend window.
         '''
@@ -15,7 +15,6 @@ class SendMailWindow:
         self.sender_mail = sender_mail
         self.recipient_mail = recipient_mail
         self.password = pwd
-        self.friend_window = friend_window
         self.pane_for_recipient = tk.PanedWindow(self.root,orient=tk.HORIZONTAL, borderwidth=5)
         self.pane_for_recipient.pack(fill=tk.BOTH)
         self.lable_for_recipient = tk.Label(self.pane_for_recipient, text='To:', width=5, justify=tk.LEFT, anchor=tk.W)
@@ -57,7 +56,7 @@ class SendMailWindow:
         '''call www's function here'''
         myEmail = mh.Email(sender, password)
         if myEmail.login()!=True:
-            fw.OpenLogInWindow(self.friend_window)
+            fw.OpenLogInWindow(self)
         else:
             myEmail.sendMailSmtp(self.recipient_mail, topic, text)
             '''close after send'''

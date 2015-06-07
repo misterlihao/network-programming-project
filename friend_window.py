@@ -108,7 +108,7 @@ class FriendWin:
         myThread.start()
         
         point = win32gui.GetCursorPos()
-        OpenLogInWindow(self)
+        OpenLogInWindow()
         self.tk_mainloop = tk.Tk()
         self.tk_mainloop.withdraw()
         self.tk_mainloop.mainloop()
@@ -487,8 +487,10 @@ class OpenAddFriendWindow:
         self.root.destroy()
         
 class OpenLogInWindow:
-    def __init__(self, parent):
-        self.friend_window=parent
+    '''
+    You should reload account/password after use this class
+    '''
+    def __init__(self):
         self.root=tk.Tk()
         self.root.title('Enter account/passwarod to log in')
         self.account_panew=tk.PanedWindow(self.root, orient=tk.HORIZONTAL)
@@ -509,6 +511,11 @@ class OpenLogInWindow:
         self.close_btn=tk.Button(self.button_panew, text='Close', command=self.Destory)
         self.button_panew.add(self.login_btn)
         self.button_panew.add(self.close_btn)
+        with open('acpwd.txt') as file:
+            for line in file:
+                acpwd = line.split(':')
+                self.account_entry.insert(0, acpwd[0])
+                self.password_entry.insert(0, acpwd[1])
         
     def login(self):
         account=self.account_entry.get()
@@ -516,8 +523,8 @@ class OpenLogInWindow:
         myEmail = mh.Email(account, password)
         success = myEmail.login()
         if success==True:
-            self.friend_window.email=account
-            self.friend_window.email_passwd=password
+            with open('acpwd.txt', 'w') as file:
+                file.write(account+';'+password)
             self.Destory()
         else:
             self.account_entry.delete(0, tk.END)
