@@ -88,7 +88,7 @@ class Email:
             message['Subject'] = subject
             message.attach(MIMEText(content))
             mailServer = smtplib.SMTP_SSL(self.sHost, self.sPort)
-            mailServer.set_debuglevel(0)
+            mailServer.set_debuglevel(1)
             mailServer.login(self.account, self.password)
             mailServer.sendmail(self.account, recipient, message.as_string())
             mailServer.close()

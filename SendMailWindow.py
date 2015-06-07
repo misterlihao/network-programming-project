@@ -49,8 +49,7 @@ class SendMailWindow:
     def SendMail(self):
         sender = self.sender_mail
         password = self.password
-        recipient_name = self.entry_for_recipient.get()
-        recipient_email = self.recipient_mail
+        recipient_email = self.entry_for_recipient.get()
         topic = self.entry_for_topic.get()
         text = self.text_for_content.get(1.0, tk.END)
         '''call www's function here'''
@@ -58,7 +57,7 @@ class SendMailWindow:
         if myEmail.login()!=True:
             fw.OpenLogInWindow(self)
         else:
-            myEmail.sendMailSmtp(self.recipient_mail, topic, text)
+            myEmail.sendMailSmtp(recipient_email, topic, text)
             '''close after send'''
             self.Destroy()
             print('Sender: ',sender, '\nTo: ', recipient_email, '\nTopic: ', topic)
