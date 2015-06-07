@@ -249,7 +249,7 @@ class FriendWin:
         if chat_win.cht_str_msg == '':
             return 
         for msg in chat_win.cht_str_msg.split('\n'):
-            mt.SendMessageAndAnime(chat_win.conn_socket, chat_win.input_text.get(), chat_win.tmp_anime)
+            mt.SendMessageAndAnime(chat_win.conn_socket, msg, '')
             chat_win.this_messages.append(msg)
             chat_win.sended_message_read = False #no need but on logical
             chat_win.showSentChatMsgWin(msg)
