@@ -525,7 +525,7 @@ class OpenLogInWindow:
         success = myEmail.login()
         if success==True:
             with open('acpwd.txt', 'w') as file:
-                file.write(account+';'+password)
+                file.write(account+':'+password)
             self.Destory()
         else:
             self.account_entry.delete(0, tk.END)
