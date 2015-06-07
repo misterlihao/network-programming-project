@@ -337,7 +337,8 @@ class FriendWin:
             for key in mailDict.keys():
                 for index in range(len(self.friend_list)):
                     friend = self.friend_list[index]
-                    if friend[4] == key:                        
+                    if friend[4] == key:
+                        print(key)                     
                         self.SetFriendNewMail(index, True, mailDict[key])
                         break
             time.sleep(60)
