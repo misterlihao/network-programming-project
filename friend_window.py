@@ -46,12 +46,15 @@ class FriendWin:
         '''if login success, return my email address to self.email'''
         self.email = 'default@gmail.com'
         self.email_passwd = ''
-        with open('acpwd.txt') as file:
-            for line in file:
-                acpwd = line.split(':')
-                self.email = acpwd[0]
-                self.email_passwd = acpwd[1]
-                print(acpwd)
+        try:
+            with open('acpwd.txt') as file:
+                for line in file:
+                    acpwd = line.split(':')
+                    self.email = acpwd[0]
+                    self.email_passwd = acpwd[1]
+                    print(acpwd)
+        except:
+            OpenLogInWindow()
         '''get friend list object'''
         self.friend_list = FriendList('friends')
         '''storage of mails'''
@@ -512,11 +515,14 @@ class OpenLogInWindow:
         self.close_btn=tk.Button(self.button_panew, text='Close', command=self.Destory)
         self.button_panew.add(self.login_btn)
         self.button_panew.add(self.close_btn)
-        with open('acpwd.txt') as file:
-            for line in file:
-                acpwd = line.split(':')
-                self.account_entry.insert(0, acpwd[0])
-                self.password_entry.insert(0, acpwd[1])
+        try:
+            with open('acpwd.txt') as file:
+                for line in file:
+                    acpwd = line.split(':')
+                    self.account_entry.insert(0, acpwd[0])
+                    self.password_entry.insert(0, acpwd[1])
+        except:
+            pass
         
     def login(self):
         account=self.account_entry.get()
