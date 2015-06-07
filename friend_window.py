@@ -247,7 +247,7 @@ class FriendWin:
         #if friend is in friend_list_item_list, refresh it
         if index >= self.friend_first_index:
             self.refreshFriendListItem(index-self.friend_first_index)
-        self.friend_new_mails[index].expand(new_mails)
+        self.friend_new_mails[index].extend(new_mails)
         
     def refreshFriendListItem(self, index):
         '''make friend_list_item window show current status
@@ -319,10 +319,11 @@ class FriendWin:
                 email_passwd = self.email_passwd
                 isChange = True
         while True:
-            friends = getFriendsEmail
+            friends = self.getFriendsEmail()
             email.setFriends(friends)
             mailDict = email.getEmail()
-            if mailDict:
+            if mailDict == None:
+                time.sleep(60)
                 myThread = threading.Thread(target=self.checkEmail)
                 myThread.setDaemon(True)
                 myThread.start()
@@ -330,7 +331,7 @@ class FriendWin:
             for key in mailDict.keys():
                 for index in range(len(self.friend_list)):
                     friend = self.friend_list[index]
-                    if frined[4] == key:                        
+                    if friend[4] == key:                        
                         self.SetFriendNewMail(index, True, mailDict[key])
                         break
             time.sleep(60)
