@@ -209,7 +209,7 @@ class FriendWin:
         '''
         sock, addr = self.newconn_queue.get()
         
-        for (ip, name, status, id, email) in self.friend_list:
+        for (ip, name, status, id, email, new_eamil_flag) in self.friend_list:
             if ip == addr:
                 self.StartChat(id, sock)
                 print('user', friend_list_item.model.friend_name, 'connected at', addr)
