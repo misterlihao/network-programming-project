@@ -241,7 +241,11 @@ class FriendWin:
                     if item.model.online:
                         print(self.friend_list[index][1])
                         if chat_win:
-                            self.sendMessageFrom_cht_str_msg(chat_win)
+                            sock = mt.StartTalking(self.friend_list[index][0])
+                            print(sock)
+                            if sock:
+                                self.StartChat(friend_id, sock)
+                                self.sendMessageFrom_cht_str_msg(chat_win)
 
                     win32gui.InvalidateRect(item.hwnd, (FLI.online_indicate_rect),True)
 

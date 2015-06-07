@@ -172,7 +172,12 @@ class image_window:
     
     def setConnectedSocket(self, sock):
         if self.conn_socket != None:
-            raise Exception('set socket when connected')
+            try:
+                mt.SendChatEndMessage(sock)
+            except:pass
+            self.conn_socket.close()
+            self.conn_socket = sock
+#             raise Exception('set socket when connected')
         self.conn_socket = sock
         self.DoAfterConnectEstablished()
     
@@ -708,7 +713,11 @@ class image_window:
             except:
                 '''chat closed'''
                 print('not connected anymore')
-                self.conn_socket.close()
+                if self.conn_socket  != None:
+                    print('close chat')
+                    self.conn_socket.close()
+                else:
+                    print('chat closed before close')
                 self.conn_socket = None
                 return
             '''send the message to next stage .Control the timing here'''
