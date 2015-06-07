@@ -62,7 +62,7 @@ class Email:
         self.sHost, self.sPort, self.iHost, self.iPort = self.getServer()
         try:
             mailServer = smtplib.SMTP_SSL(self.sHost, self.sPort)
-            mailServer.set_debuglevel(1)
+            mailServer.set_debuglevel(0)
             mailServer.login(self.account, self.password)
             self.isLogin = True
             return True
@@ -88,7 +88,7 @@ class Email:
             message['Subject'] = subject
             message.attach(MIMEText(content))
             mailServer = smtplib.SMTP_SSL(self.sHost, self.sPort)
-            mailServer.set_debuglevel(1)
+            mailServer.set_debuglevel(0)
             mailServer.login(self.account, self.password)
             mailServer.sendmail(self.account, recipient, message.as_string())
             mailServer.close()

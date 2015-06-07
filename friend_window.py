@@ -98,17 +98,17 @@ class FriendWin:
         myThread = threading.Thread(target=self.RefreashFriendStatusInThread)
         myThread.setDaemon(True)
         myThread.start()
-        '''check character and updata if need'''
+        '''check character and updata if need'''   
         myThread = threading.Thread(target=self.recvVersionAndUpdata)
         myThread.setDaemon(True)
         myThread.start()
         '''check new email'''
-        myThread = threading.Thread(target=self.checkEmail)
-        myThread.setDaemon(True)
-        myThread.start()
+        #myThread = threading.Thread(target=self.checkEmail)
+        #myThread.setDaemon(True)
+        #myThread.start()
         
         point = win32gui.GetCursorPos()
-        OpenLogInWindow()
+        OpenLogInWindow(self)
         self.tk_mainloop = tk.Tk()
         self.tk_mainloop.withdraw()
         self.tk_mainloop.mainloop()
@@ -308,7 +308,7 @@ class FriendWin:
             if frined[4] != '':
                 friends.append(frined[4])
         return friends
-    
+  
     def checkEmail(self):
         email = mailHandle.Email()
         isChange = True
@@ -491,7 +491,8 @@ class OpenLogInWindow:
     '''
     You should reload account/password after use this class
     '''
-    def __init__(self):
+    def __init__(self, friendwin):
+        self.friendwin = friendwin
         self.root=tk.Tk()
         self.root.title('Enter account/passwarod to log in')
         self.account_panew=tk.PanedWindow(self.root, orient=tk.HORIZONTAL)
@@ -517,6 +518,9 @@ class OpenLogInWindow:
                 acpwd = line.split(':')
                 self.account_entry.insert(0, acpwd[0])
                 self.password_entry.insert(0, acpwd[1])
+                #self.email = mailHandle.Email(acpwd[0], acpwd[1])
+                #self.email = acpwd[0]
+                #self.email_passwd = acpwd[1]
         
     def login(self):
         account=self.account_entry.get()
@@ -525,14 +529,64 @@ class OpenLogInWindow:
         success = myEmail.login()
         if success==True:
             with open('acpwd.txt', 'w') as file:
-                file.write(account+';'+password)
+                file.write(account+':'+password)
             self.Destory()
+    
+            myThread = threading.Thread(target=self.friendwin.checkEmail)
+            myThread.setDaemon(True)
+            myThread.start()
+            
+            
+            
         else:
             self.account_entry.delete(0, tk.END)
             self.account_entry.insert(0, 'Login Failed!')
         
     def Destory(self):
         self.root.destroy()
+        
+    '''   
+    def checkEmail(self):
+        email = mailHandle.Email()
+        isChange = True
+        strEmail = self.email
+        email_passwd = self.email_passwd
+        while True:
+            if isChange and (email.login(self.email, self.email_passwd)):
+                break
+            time.sleep(5)
+            if (strEmail == self.email) and (email_passwd == self.email_passwd):
+                isChange = False
+            else:
+                strEmail = self.email
+                email_passwd = self.email_passwd
+                isChange = True
+        while True:
+            friends = self.getFriendsEmail()
+            email.setFriends(friends)
+            mailDict = email.getEmail()
+            if mailDict == None:
+                time.sleep(60)
+                myThread = threading.Thread(target=self.checkEmail)
+                myThread.setDaemon(True)
+                myThread.start()
+                return
+            for key in mailDict.keys():
+                for index in range(len(self.friend_list)):
+                    friend = self.friend_list[index]
+                    if friend[4] == key:
+                        print(key)                     
+                        self.SetFriendNewMail(index, True, mailDict[key])
+                        break
+            time.sleep(60)    
+            
+    def getFriendsEmail(self):
+        friends = []
+        for frined in self.friend_list:
+            if frined[4] != '':
+                friends.append(frined[4])
+        return friends
+    '''
         
 import time
 if __name__ == '__main__':
