@@ -57,7 +57,10 @@ class ReadMailWindow:
         
 
     def Reply(self):
-        self.SMW = smw.SendMailWindow(self.receiver, self.sender, self.friend_window.email_passwd)
+        with open('acpwd.txt') as file:
+            for line in file:
+                acpwd = line.split(':')
+                self.SMW = smw.SendMailWindow(self.receiver, self.sender, acpwd[1])
         self.SMW.text_for_content.insert(1.0, '\n\n---------------\n'+self.text)
         #self.root.destroy()
     
