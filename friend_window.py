@@ -46,12 +46,16 @@ class FriendWin:
         '''if login success, return my email address to self.email'''
         self.email = 'default@gmail.com'
         self.email_passwd = ''
-        with open('acpwd.txt') as file:
-            for line in file:
-                acpwd = line.split(':')
-                self.email = acpwd[0]
-                self.email_passwd = acpwd[1]
-                print(acpwd)
+        try:
+            with open('acpwd.txt') as file:
+                for line in file:
+                    acpwd = line.split(':')
+                    self.email = acpwd[0]
+                    self.email_passwd = acpwd[1]
+                    print(acpwd)
+                    self.startCheckEmail()
+        except:
+            OpenLogInWindow()
         '''get friend list object'''
         self.friend_list = FriendList('friends')
         '''storage of mails'''
@@ -103,15 +107,20 @@ class FriendWin:
         myThread.setDaemon(True)
         myThread.start()
         '''check new email'''
-        #myThread = threading.Thread(target=self.checkEmail)
-        #myThread.setDaemon(True)
-        #myThread.start()
+#         myThread = threading.Thread(target=self.checkEmail)
+#         myThread.setDaemon(True)
+#         myThread.start()
         
         point = win32gui.GetCursorPos()
-        OpenLogInWindow(self)
+
         self.tk_mainloop = tk.Tk()
         self.tk_mainloop.withdraw()
         self.tk_mainloop.mainloop()
+        
+    def startCheckEmail(self):
+        myThread = threading.Thread(target=self.checkEmail)
+        myThread.setDaemon(True)
+        myThread.start()
         
     def RegisterClass(self):
         className = "friend_window"
@@ -513,14 +522,16 @@ class OpenLogInWindow:
         self.close_btn=tk.Button(self.button_panew, text='Close', command=self.Destory)
         self.button_panew.add(self.login_btn)
         self.button_panew.add(self.close_btn)
-        with open('acpwd.txt') as file:
-            for line in file:
-                acpwd = line.split(':')
-                self.account_entry.insert(0, acpwd[0])
-                self.password_entry.insert(0, acpwd[1])
-                #self.email = mailHandle.Email(acpwd[0], acpwd[1])
-                #self.email = acpwd[0]
-                #self.email_passwd = acpwd[1]
+
+        try:
+            with open('acpwd.txt') as file:
+                for line in file:
+                    acpwd = line.split(':')
+                    self.account_entry.insert(0, acpwd[0])
+                    self.password_entry.insert(0, acpwd[1])
+        except:
+            pass
+
         
     def login(self):
         account=self.account_entry.get()
@@ -531,11 +542,7 @@ class OpenLogInWindow:
             with open('acpwd.txt', 'w') as file:
                 file.write(account+':'+password)
             self.Destory()
-    
-            myThread = threading.Thread(target=self.friendwin.checkEmail)
-            myThread.setDaemon(True)
-            myThread.start()
-            
+            self.friendwin.startCheckEmail()
             
             
         else:
