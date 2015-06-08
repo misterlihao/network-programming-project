@@ -12,6 +12,7 @@ class FriendList:
         self.id_max = 0
         with open(self.file_name) as file:
             for line in file:
+                print(line)
                 if line[-1]=='\n':
                     line = line[:-1]
                 ip, name,id,email = line.split(':')

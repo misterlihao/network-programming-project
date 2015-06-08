@@ -215,7 +215,7 @@ class FriendWin:
                 self.StartChat(id, sock)
                 print('user', friend_list_item.model.friend_name, 'connected at', addr)
                 print('chat started, character opened')
-            return
+                return
         
         mt.SendChatEndMessage(sock)
         sock.close()
@@ -370,6 +370,7 @@ class FriendWin:
             callbackfunc = None
             print(scName[0])
             friend_found = False
+            time.sleep(1)
             for each in self.chat_wins:
                 if each.ip == scName[0]:
                     while True:#wait until window created
