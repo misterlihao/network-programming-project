@@ -87,13 +87,14 @@ def updataIfNeed(sock, myChafile, friendID, func, callbackFunc = None):
             myThread.start()
             #uploadCharacter(sock, myChadir)
         updateCharacter(sock, friChadir, friendID, func)
+        if data=='True':
+            myThread.join( )
     else:
         mp.sendPacket(sock, 'False'.encode('utf8'))
         data = mp.recvPacket(sock).decode()
         if data == 'True':
             uploadCharacter(sock, myChadir)
     
-    myThread.join()
     sock.close()
     if callbackFunc != None:
         callbackFunc()

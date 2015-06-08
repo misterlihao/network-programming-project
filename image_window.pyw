@@ -849,6 +849,8 @@ class image_window:
         if value == None:
             return self.charFile
         win32gui.ShowWindow(self.hwnd, value)
+        if value == 1:
+            self.showAction(self.getActionPath('idle.txt'), repeating = True)
         return None
     
 class ChangeImageThread(threading.Thread):
