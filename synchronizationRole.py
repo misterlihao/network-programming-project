@@ -93,6 +93,7 @@ def updataIfNeed(sock, myChafile, friendID, func, callbackFunc = None):
         if data == 'True':
             uploadCharacter(sock, myChadir)
     
+    myThread.join()
     sock.close()
     if callbackFunc != None:
         callbackFunc()

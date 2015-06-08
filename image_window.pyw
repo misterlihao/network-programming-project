@@ -119,6 +119,8 @@ class image_window:
         self.chat_name = friend_name
         ''''speak window'''
         self.speak_window = None
+        '''speak window'''
+        self.speak_window_hwnd = 0
         '''name window'''
         self.name_win = None
         self.ShowNameWin()
@@ -405,6 +407,8 @@ class image_window:
         
         self.input_text.focus()
         self.speak_window.geometry('+%d+%d' % self.GetSpeakWindowPos())
+        self.speak_window_hwnd = win32gui.GetForegroundWindow()
+        win32gui.SetFocus(self.speak_window_hwnd)
         self.SetAttachedWinPos()
     
     def ShowNameWin(self):
@@ -578,7 +582,8 @@ class image_window:
         self.this_messages.append('you: '+msg)
         '''1.send new message so readCheck set to False'''
         self.sended_message_read = False #no need but on logical
-        self.showSentChatMsgWin(msg)
+        if msg != '':
+            self.showSentChatMsgWin(msg)
         
         self.showAction(self.getActionPath('send.txt'))
         self.input_text.delete(0, tk.END)
@@ -746,6 +751,8 @@ class image_window:
             PlaySound('skin/newmessage.wav', SND_ASYNC)
         if anime != '':
             self.showAction(self.getActionPath(anime), repeating= True)
+        if self.speak_window_hwnd != 0:
+            win32gui.SetFocus(self.speak_window_hwnd)
 
     def getParentDirectory(self, path):
         #return os.path.abspath(os.path.join(path, os.pardir))
