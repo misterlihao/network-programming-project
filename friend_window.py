@@ -211,15 +211,15 @@ class FriendWin:
         sock, addr = self.newconn_queue.get()
         
         for (ip, name, status, id, email, new_eamil_flag) in self.friend_list:
-            if ip == addr:
+            if ip == addr[0]:
                 self.StartChat(id, sock)
-                print('user', friend_list_item.model.friend_name, 'connected at', addr)
+                print('user', name, 'connected at', addr)
                 print('chat started, character opened')
                 return
         
         mt.SendChatEndMessage(sock)
         sock.close()
-        print('unknown connection from (%s) rejected'%ip)
+        print('unknown connection from (%s) rejected'%addr[0])
         
     def RefreashFriendStatusInThread(self):
         while True:

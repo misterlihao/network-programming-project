@@ -128,7 +128,7 @@ class image_window:
         '''for socket connection'''
         self.ip = ip
         '''the socket , whether connected or not'''
-        self.conn_socket = sock
+        self.conn_socket = None
         '''the character file (path of bitmaps)'''
         self.charFile = characterFile
         '''the chat msg queue for thread to insert into
@@ -153,8 +153,8 @@ class image_window:
         self.receive_message_read = True #no not yet read received message
         self.sended_message_read = True #he/she already read message
         
-        if self.conn_socket != None:
-            self.DoAfterConnectEstablished()
+        if sock != None:
+            self.setConnectedSocket(sock)
         '''for selecting the anime to send'''
         self.tmp_anime=""      
     
@@ -180,9 +180,10 @@ class image_window:
             self.conn_socket = sock
 #             raise Exception('set socket when connected')
         self.conn_socket = sock
+        mt.sendPacket(self.conn_socket, 'ok')
         self.DoAfterConnectEstablished()
     
-    def DoAfterConnectEstablished(self):  
+    def DoAfterConnectEstablished(self):
         thread = threading.Thread(target=self.listen_to_chat_messagesInThread)
         thread.setDaemon(True)
         thread.start()
@@ -570,6 +571,7 @@ class image_window:
             myThread.setDaemon(True)
             myThread.start()
             self.DoAfterConnectEstablished() 
+            assert mt.recvPacket(self.conn_socket) == 'ok'
         
         mt.SendMessageAndAnime(self.conn_socket, self.input_text.get(), self.tmp_anime)
         msg = self.input_text.get()
@@ -593,6 +595,7 @@ class image_window:
         for win in self.chat_msg_win:
             try:turnOffTk(win)
             except :pass
+        self.chat_msg_win = []
     
     def OnDestroy(self, hwnd, message, wparam, lparam):
         '''
@@ -713,8 +716,9 @@ class image_window:
                     self.sent_msg_win.destroy()
                     continue
                 else: self.receive_message_read = False #received a normal message but not readCheck, control to send when next click
-            except:
+            except Exception as e:
                 '''chat closed'''
+                print(e)
                 print('not connected anymore')
                 if self.conn_socket  != None:
                     print('close chat')
@@ -735,6 +739,7 @@ class image_window:
         maybe add history here
         '''
         msg, anime = self.chatmsg_queue.get()
+        print(msg)
         self.this_messages.append(self.chat_name+': '+msg)
         if msg != '':
             self.ShowNewChatMsgWin(msg) 

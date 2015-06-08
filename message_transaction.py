@@ -39,7 +39,7 @@ def RecvMessageAndAnime(s):
 def SendChatEndMessage(s):
     SendMessageAndAnime(s, 'close_chat', 'close_chat')
     
-def IsChatEndMessage(s, msg, anime):
+def IsChatEndMessage(msg, anime):
     return msg == anime and msg == 'close_chat'
     
 global_socket = None
