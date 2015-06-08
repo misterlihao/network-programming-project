@@ -265,7 +265,7 @@ class FriendWin:
             new_mails: new mails list to insert in''' 
         self.friend_list[index][5] = new_mail_status
         #if friend is in friend_list_item_list, refresh it
-        if index >= self.friend_first_index:
+        if index >= self.friend_first_index and index-self.friend_first_index < self.friend_list_len:
             self.refreshFriendListItem(index-self.friend_first_index)
         self.friend_new_mails[index].extend(new_mails)
         
@@ -413,19 +413,26 @@ class FriendWin:
                 chat_win.online = True
                 return
         
-        for friend in self.friend_list:
+        for i in range(len(self.friend_list)):
+            friend=self.friend_list[i]
             ip = friend[0]
             name = friend[1]
             id = friend[3]
             if id == friend_id:
-                self.chat_wins.append(image_window(
+                win = image_window(
                     self.OnChatClosed, 
                     name, 
                     sock, 
                     ip, 
                     self.getCharPath(id, self.char_id),
-                    id))
+                    id)
+                
+                list_item_index = i-self.friend_first_index 
+                if list_item_index >= 0 and list_item_index < self.friend_list_len:
+                    self.friend_list_item_list[list_item_index].SetFriendData(friend)
                 # set if friend online
+                win.online = friend[2]
+                self.chat_wins.append(win)
                 break
         
         print('character created')
