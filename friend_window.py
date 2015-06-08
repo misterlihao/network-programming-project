@@ -200,6 +200,7 @@ class FriendWin:
         message_transaction.ReceivingConnections'''
         self.newconn_queue.put((sock, addr))
         win32gui.SendMessage(self.hwnd, WM_CONNACCEPTED, 0, 0)
+        print('ocait', sock)
         
     def OnConnAccepted(self, hwnd, msg, wp, lp):
         '''
@@ -240,12 +241,12 @@ class FriendWin:
                         chat_win.online = item.model.online
                     if item.model.online:
                         print(self.friend_list[index][1])
-                        if chat_win:
+                        if chat_win and chat_win.cht_str_msg != '':
                             sock = mt.StartTalking(self.friend_list[index][0])
-                            print(sock)
                             if sock:
-                                self.StartChat(friend_id, sock)
                                 self.sendMessageFrom_cht_str_msg(chat_win)
+                                mt.SendChatEndMessage(sock)
+                                print('send offline msg')
 
                     win32gui.InvalidateRect(item.hwnd, (FLI.online_indicate_rect),True)
 
@@ -408,6 +409,7 @@ class FriendWin:
                 raise Exception('start chat when opened, without socket')
             else:
                 chat_win.setConnectedSocket(sock)
+                chat_win.online = True
                 return
         
         for friend in self.friend_list:
@@ -422,6 +424,7 @@ class FriendWin:
                     ip, 
                     self.getCharPath(id, self.char_id),
                     id))
+                # set if friend online
                 break
         
         print('character created')

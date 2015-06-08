@@ -171,6 +171,7 @@ class image_window:
         return result_list
     
     def setConnectedSocket(self, sock):
+        print('set connected socket', sock.getpeername())
         if self.conn_socket != None:
             try:
                 mt.SendChatEndMessage(sock)
@@ -558,7 +559,9 @@ class image_window:
         speak_window_hwnd = win32gui.GetForegroundWindow()
         if self.conn_socket == None:
             if self.online == True:
+                print('try connect to', self.ip)
                 self.conn_socket = mt.StartTalking(self.ip)
+                print('result:', self.conn_socket)
             if self.conn_socket == None:
                 self.set_cht_str_msg()
                 return 
@@ -810,8 +813,10 @@ class image_window:
         os.remove(sfileName)
     '''
     def sendVersionAndUpdata(self):
+        print('send version and updata in image')
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((self.ip, 12348))
+        print('updata sock:', sock)
         #arg = (sock, myChafile, friChafile, friendID, callbackfunc)
         updataIfNeed(sock, self.myCharFile, self.friendID, self.setChadisplay, self.callbackfunc)
          
