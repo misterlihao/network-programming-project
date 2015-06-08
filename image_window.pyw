@@ -174,13 +174,13 @@ class image_window:
         print('set connected socket', sock.getpeername())
         if self.conn_socket != None:
             try:
-                mt.SendChatEndMessage(sock)
+                mt.SendChatEndMessage(self.conn_socket)
             except:pass
             self.conn_socket.close()
             self.conn_socket = sock
 #             raise Exception('set socket when connected')
         self.conn_socket = sock
-        mt.sendPacket(self.conn_socket, 'ok')
+        mp.sendPacket(self.conn_socket, b'ok')
         self.DoAfterConnectEstablished()
     
     def DoAfterConnectEstablished(self):
@@ -570,8 +570,8 @@ class image_window:
             myThread = threading.Thread(target=self.sendVersionAndUpdata)
             myThread.setDaemon(True)
             myThread.start()
+            assert mp.recvPacket(self.conn_socket) == b'ok'
             self.DoAfterConnectEstablished() 
-            assert mt.recvPacket(self.conn_socket) == 'ok'
         
         mt.SendMessageAndAnime(self.conn_socket, self.input_text.get(), self.tmp_anime)
         msg = self.input_text.get()
@@ -772,7 +772,7 @@ class image_window:
     
     def checkCharVersion(self):
         text = str(self.getCharDataSize(self.getParentDirectory(self.myCharFile)))
-        mp.sendPacket(self.conn_socket, text.encode('utf8'))
+        mp. (self.conn_socket, text.encode('utf8'))
         data = mp.recvPacket(self.conn_socket).decode('utf8')
         if self.cmpCharVersion(self.getCharDataSize(self.getParentDirectory(self.charFile)), int(data)):
             return True
