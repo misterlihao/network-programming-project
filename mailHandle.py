@@ -72,11 +72,12 @@ class Email:
     
     def getServer(self):
         temp = self.account.split('@', 1)
-        temp = temp[1].split('.')[0]
-        if temp == 'gmail':
-            return 'smtp.gmail.com', 465, 'imap.gmail.com', 993
-        elif temp == 'yahoo':
-            return 'smtp.mail.yahoo.com', 465, 'imap.mail.yahoo.com', 993
+        if len(temp) != 1:
+            temp = temp[1].split('.')[0]
+            if temp == 'gmail':
+                return 'smtp.gmail.com', 465, 'imap.gmail.com', 993
+            elif temp == 'yahoo':
+                return 'smtp.mail.yahoo.com', 465, 'imap.mail.yahoo.com', 993
         return 'undefined', 0, '', 0
         
 
@@ -174,7 +175,9 @@ class Email:
         
 if __name__  == '__main__':
 
-    account = 'bbai14915@gmail.com'
+    #account = 'bbai14915@gmail.com'
+
+    account = 'bbai1gmail.com'
     password = 'zxc09876'
     recipient = 'pe83aa517z@gmail.com'
     subject = 'test python'
