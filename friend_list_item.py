@@ -15,6 +15,8 @@ import SendMailWindow as smw
 from MailListWindow import MailListWindow
 from ReadMailWindow import ReadMailWindow
 from WM_APP_MESSAGES import WM_SHOWMAILLISTWINDOW
+import mailHandle as mh
+import friend_window as fw
 online_indicate_rect = (6,6,16,16)
 oir = online_indicate_rect
 #execute once
@@ -207,8 +209,12 @@ class FriendListItemView:
             except Exception:
                 self.ShowEditWindow()
         elif item_id ==2:
-            smw.SendMailWindow(self.friend_window.email, self.model.email, self.friend_window.email_passwd)
-                
+            myEmail = mh.Email()
+            if myEmail.login(self.friend_window.email, self.friend_window.email_passwd)!=True:
+                fw.OpenLogInWindow(self.friend_window)
+            else:
+                smw.SendMailWindow(self.friend_window.email, self.model.email, self.friend_window.email_passwd)
+            
         win32gui.DestroyMenu(menu)
         return True
     

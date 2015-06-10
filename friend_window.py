@@ -472,6 +472,16 @@ class FriendWin:
             if email.sendMailSmtp(recipient, strSubject, strContent):
                 return True
         return False
+    
+    def IncreaseFriendListItemWhenAddNewFriendIfLessThanDefault(self):
+        rect = win32gui.GetClientRect(self.hwnd)
+        name = self.friend_list[len(self.friend_list_item_list)][1]
+        ip = self.friend_list[len(self.friend_list_item_list)][0]
+        friend_id = self.friend_list[len(self.friend_list_item_list)][3]
+        email = self.friend_list[len(self.friend_list_item_list)][4]
+        if (len(self.friend_list_item_list)<4):
+            fli = FLI.create(self, ip, name, friend_id, email, 0, 24*len(self.friend_list_item_list), rect[2], 24)
+            self.friend_list_item_list.append(fli)
         
         
 class OpenAddFriendWindow:
@@ -509,6 +519,7 @@ class OpenAddFriendWindow:
         name = self.entry_for_name.get()
         email = self.entry_for_eamil.get()
         self.parent.friend_list.AddNewFriend(ip, name, email) 
+        self.parent.IncreaseFriendListItemWhenAddNewFriendIfLessThanDefault()
         
     def Destroy(self):
         self.root.destroy()
