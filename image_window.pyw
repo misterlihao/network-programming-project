@@ -22,6 +22,7 @@ import myPacket as mp
 import elfAutoBehavior
 import mailHandle
 from winsound import PlaySound, SND_ASYNC
+from random import randint
 config_file="config"
 history_file="history"
 #execute once
@@ -215,8 +216,8 @@ class image_window:
                              className,
                              "image_window",
                              style,
-                             win32con.CW_USEDEFAULT,
-                             win32con.CW_USEDEFAULT,
+                             randint(200,800),
+                             randint(200,500),
                              130,
                              130,
                              0,
