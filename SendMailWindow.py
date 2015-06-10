@@ -54,14 +54,13 @@ class SendMailWindow:
         text = self.text_for_content.get(1.0, tk.END)
         '''call www's function here'''
         myEmail = mh.Email(sender, password)
-        if myEmail.login()!=True:
-            fw.OpenLogInWindow(self)
-        else:
-            myEmail.sendMailSmtp(recipient_email, topic, text)
-            '''close after send'''
-            self.Destroy()
-            print('Sender: ',sender, '\nTo: ', recipient_email, '\nTopic: ', topic)
-            print('Text: \n', text)
+
+        myEmail.sendMailSmtp(recipient_email, topic, text)
+        '''close after send'''
+        self.Destroy()
+        print('Sender: ',sender, '\nTo: ', recipient_email, '\nTopic: ', topic)
+        print('Text: \n', text)
+
         
     def Destroy(self):
         self.root.destroy() 
