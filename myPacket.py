@@ -6,11 +6,13 @@ sizeBytes = 8
 def sendPacket(sock, bstr):
 	sock.send(struct.pack(packet_len_pack_pattern, len(bstr)))
 	sock.sendall(bstr)
+	print('send', sock.getpeername(), 'to', bstr)
 
 def recvPacket(sock):
 	packet_len_bstr = recvBytes(sock, sizeBytes)
 	packet_len = struct.unpack(packet_len_pack_pattern, packet_len_bstr)[0]
 	bstr = recvBytes(sock, packet_len)
+	print('recv', sock.getpeername(), 'from', bstr)
 	return bstr
 
 def recvBytes(sock, count):
