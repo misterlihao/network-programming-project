@@ -60,16 +60,16 @@ class FriendList:
                 each[2] = False
         return updated_friends
     
-    def AddNewFriend(self,ip, name, email):
+    def AddNewFriend(self,ip, name, email=''):
         '''
         '''
-        self.item_list.append(buildItem(ip, name, self.id_max+1, email))
+        self.item_list.append(self.buildItem(ip, name, self.id_max+1, email))
         #self.item_list.append([ip, name, False, self.id_max+1, email, False])
         self.id_max += 1
-        folder_path = 'data/' + str(self.id_max) 
+        folder_path = 'data/' + str(self.id_max)
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
-        copyanything('data/1/char', folder_path+'/char')
+        copyanything('data/character1', folder_path+'/char/1')
     
     def buildItem(self, ip, name, id, email):
         return [ip, name, False, id, email, False]
