@@ -172,7 +172,7 @@ class image_window:
                 
         return result_list
     
-    def setConnectedSocket(self, sock):
+    def setConnectedSocket(self, sock, is_connectee=True):
         print('set connected socket', sock.getpeername())
         if self.conn_socket != None:
             try:
@@ -182,7 +182,10 @@ class image_window:
             self.conn_socket = sock
 #             raise Exception('set socket when connected')
         self.conn_socket = sock
-        mp.sendPacket(self.conn_socket, b'ok')
+        if is_connectee:
+            mp.sendPacket(self.conn_socket, b'ok')
+        else:
+            assert mp.recvPacket(self.conn_socket) == b'ok'
         self.DoAfterConnectEstablished()
     
     def DoAfterConnectEstablished(self):

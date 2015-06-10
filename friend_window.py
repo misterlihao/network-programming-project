@@ -245,7 +245,8 @@ class FriendWin:
                             sock = mt.StartTalking(self.friend_list[index][0])
                             
                             if sock:
-                                chat_win.setConnectedSocket(sock)
+                                chat_win.setConnectedSocket(sock, is_connectee=False)
+                                
                                 self.sendMessageFrom_cht_str_msg(chat_win)
                                 #mt.SendChatEndMessage(sock)
                                 print('send offline msg')
