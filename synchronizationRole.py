@@ -78,24 +78,27 @@ def updataIfNeed(sock, myChafile, friendID, func, callbackFunc = None):
     firChafile = func(None)
     friChadir = getParentDirectory(firChafile)
     myChadir = getParentDirectory(myChafile)
-    if not checkCharVersion(sock, myChadir, friChadir):
-        mp.sendPacket(sock, 'True'.encode('utf8'))
-        data = mp.recvPacket(sock).decode('utf8')
-        if data=='True':
-            myThread = threading.Thread(target=uploadCharacter, args=(sock, myChadir))
-            myThread.setDaemon(True)
-            myThread.start()
-            #uploadCharacter(sock, myChadir)
-        updateCharacter(sock, friChadir, friendID, func)
-        if data=='True':
-            myThread.join( )
-    else:
-        mp.sendPacket(sock, 'False'.encode('utf8'))
-        data = mp.recvPacket(sock).decode()
-        if data == 'True':
-            uploadCharacter(sock, myChadir)
-    
-    sock.close()
+    try:
+        if not checkCharVersion(sock, myChadir, friChadir):
+            mp.sendPacket(sock, 'True'.encode('utf8'))
+            data = mp.recvPacket(sock).decode('utf8')
+            if data=='True':
+                myThread = threading.Thread(target=uploadCharacter, args=(sock, myChadir))
+                myThread.setDaemon(True)
+                myThread.start()
+                #uploadCharacter(sock, myChadir)
+            updateCharacter(sock, friChadir, friendID, func)
+            if data=='True':
+                myThread.join( )
+        else:
+            mp.sendPacket(sock, 'False'.encode('utf8'))
+            data = mp.recvPacket(sock).decode()
+            if data == 'True':
+                uploadCharacter(sock, myChadir)
+    except:
+        pass
+    finally:
+        sock.close()
     if callbackFunc != None:
         callbackFunc()
         
