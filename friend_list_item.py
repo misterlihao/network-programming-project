@@ -93,6 +93,7 @@ class FriendListItemView:
         self.friend_window = friend_window_object
         self.model = Model()
         self.SetFriendData((ip, friend_name, False, friend_id, friend_email, False))
+        self.mail_list_win = None
         
     def OnSize(self, hwnd, msg, wp, lp):
         w, h = win32api.LOWORD(lp), win32api.HIWORD(lp)
@@ -106,7 +107,11 @@ class FriendListItemView:
             win32gui.SetWindowText(self.chat_btn, 'chat')
         else:
             win32gui.SetWindowText(self.chat_btn, 'close')
-        win32gui.EnableWindow(self.mail_btn, self.model.new_mail)
+#         win32gui.EnableWindow(self.mail_btn, self.model.new_mail)
+        if self.model.new_mail:
+            win32gui.SetWindowText(self.mail_btn, 'new mails')
+        else:
+            win32gui.SetWindowText(self.mail_btn, 'mails')
         
     def StartChat(self):    
         '''WARNNING!! don't use it anymore. USE StartChat() in frien_window!!'''
@@ -132,7 +137,12 @@ class FriendListItemView:
             win32gui.SendMessage(self.hwnd, WM_SHOWMAILLISTWINDOW, 0, 0)
             
     def ShowMailListWindow(self, hwnd, msg, wp, lp):
-        self.mail_list_win = MailListWindow('<Mail>'+self.model.friend_name)
+        if self.mail_list_win != None:
+            self.OnMailListWinClosed()
+            return
+        
+        win32gui.SetWindowText(self.mail_btn, 'close')
+        self.mail_list_win = MailListWindow('<Mail>'+self.model.friend_name, self.OnMailListWinClosed)
         friend_index = None
         for i in range(len(self.friend_window.friend_list)):
             friend = self.friend_window.friend_list[i]
@@ -140,7 +150,8 @@ class FriendListItemView:
                 friend_index = i
                 break
         
-        for mail in self.friend_window.friend_new_mails[friend_index]:
+        for i in range(len(self.friend_window.friend_new_mails[friend_index])-1,-1,-1):
+            mail = self.friend_window.friend_new_mails[friend_index][i]
             author = mail[0]
             subject = mail[1]
             content = mail[2]
@@ -149,6 +160,14 @@ class FriendListItemView:
                 text='<%s> %s'%(date, subject),
                 callback=lambda:ReadMailWindow(self.friend_window.email, author, subject, content)
             )
+    
+    def OnMailListWinClosed(self):
+        if self.model.new_mail:
+            win32gui.SetWindowText(self.mail_btn, 'new mails')
+        else:
+            win32gui.SetWindowText(self.mail_btn, 'mails')
+        self.mail_list_win.destroy()
+        self.mail_list_win = None
     
     def OnPaint(self, hwnd, msg, wp, lp):
         '''win32 callback

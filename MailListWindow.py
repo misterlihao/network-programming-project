@@ -2,11 +2,12 @@ import tkinter as tk
 from tkinter import Toplevel
 
 class MailListWindow:
-    def __init__(self, title):
+    def __init__(self, title, after_close):
         self.win = Toplevel()
         self.win.title(title)
         self.win.geometry('400x200')
         self.win.wm_attributes('-toolwindow', True)
+        self.win.protocol("WM_DELETE_WINDOW", after_close)
         
         inner_frame = tk.Frame(self.win)#inner_frame = tk.Frame(canvas)
         inner_frame.pack(side='left', fill='both', expand = 1)
@@ -55,6 +56,9 @@ class MailListWindow:
         
     def callback(self):
         print('click')
+        
+    def destroy(self):
+        self.win.destroy()
     
 if __name__ == '__main__':
     root = tk.Tk()
