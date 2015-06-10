@@ -243,9 +243,11 @@ class FriendWin:
                         print(self.friend_list[index][1])
                         if chat_win and chat_win.cht_str_msg != '':
                             sock = mt.StartTalking(self.friend_list[index][0])
+                            
                             if sock:
+                                chat_win.setConnectedSocket(sock)
                                 self.sendMessageFrom_cht_str_msg(chat_win)
-                                mt.SendChatEndMessage(sock)
+                                #mt.SendChatEndMessage(sock)
                                 print('send offline msg')
 
                     win32gui.InvalidateRect(item.hwnd, (FLI.online_indicate_rect),True)
