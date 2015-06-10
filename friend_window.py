@@ -390,7 +390,7 @@ class FriendWin:
                 arg = (sc, myChafile, friendID, callbackfunc)
                 threading.Thread(None, updataIfNeed, args=arg).start()
             else:
-                sock.close()
+                sc.close()
     
     def GetChatWin(self, friend_id):
         for win in self.chat_wins:
