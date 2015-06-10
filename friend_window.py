@@ -217,8 +217,9 @@ class FriendWin:
                 print('user', name, 'connected at', addr)
                 print('chat started, character opened')
                 return
-        
+
         mp.sendPacket(sock, b'ok')
+
         mt.SendChatEndMessage(sock)
         sock.close()
         print('unknown connection from (%s) rejected'%addr[0])
@@ -272,6 +273,7 @@ class FriendWin:
         #if friend is in friend_list_item_list, refresh it
         if index >= self.friend_first_index and index-self.friend_first_index < self.friend_list_len:
             self.refreshFriendListItem(index-self.friend_first_index)
+        print('index=',index)
         self.friend_new_mails[index].extend(new_mails)
         
     def refreshFriendListItem(self, index):
@@ -295,11 +297,11 @@ class FriendWin:
         if self.friend_first_index < 0:
             self.friend_first_index = 0
         elif self.friend_list_len > len(self.friend_list):
-            pass
+            self.friend_first_index = 0
         elif self.friend_first_index + self.friend_list_len > len(self.friend_list):
             self.friend_first_index = len(self.friend_list) - self.friend_list_len
             
-        for i in range(self.friend_list_len):
+        for i in range(min(self.friend_list_len, len(self.friend_list))):
             self.refreshFriendListItem(i)
         return True
     
