@@ -55,7 +55,7 @@ class FriendWin:
                     print(acpwd)
                     self.startCheckEmail()
         except:
-            OpenLogInWindow()
+            OpenLogInWindow(self)
         '''get friend list object'''
         self.friend_list = FriendList('friends')
         '''storage of mails'''
@@ -517,7 +517,7 @@ class OpenLogInWindow:
     '''
     You should reload account/password after use this class
     '''
-    def __init__(self, friendwin):
+    def __init__(self, friendwin=None):
         self.friendwin = friendwin
         self.root=tk.Tk()
         self.root.title('Enter account/passwarod to log in')

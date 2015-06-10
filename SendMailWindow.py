@@ -55,7 +55,7 @@ class SendMailWindow:
         '''call www's function here'''
         myEmail = mh.Email(sender, password)
         if myEmail.login()!=True:
-            fw.OpenLogInWindow(self)
+            fw.OpenLogInWindow()
         else:
             myEmail.sendMailSmtp(recipient_email, topic, text)
             '''close after send'''

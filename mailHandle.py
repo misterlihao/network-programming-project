@@ -175,9 +175,9 @@ class Email:
         
 if __name__  == '__main__':
 
-    #account = 'bbai14915@gmail.com'
+    account = 'bbai14915@gmail.com'
 
-    account = 'bbai1gmail.com'
+    #account = 'bbai1gmail.com'
     password = 'zxc09876'
     recipient = 'pe83aa517z@gmail.com'
     subject = 'test python'
