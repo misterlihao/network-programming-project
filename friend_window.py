@@ -11,6 +11,7 @@ from FriendList import FriendList
 import threading
 import online_check as oc
 import message_transaction as mt
+import myPacket as mp
 import queue
 import socket
 from WM_APP_MESSAGES import *
@@ -217,6 +218,7 @@ class FriendWin:
                 print('chat started, character opened')
                 return
         
+        mp.sendPacket(sock, b'ok')
         mt.SendChatEndMessage(sock)
         sock.close()
         print('unknown connection from (%s) rejected'%addr[0])
@@ -390,7 +392,7 @@ class FriendWin:
                 arg = (sc, myChafile, friendID, callbackfunc)
                 threading.Thread(None, updataIfNeed, args=arg).start()
             else:
-                sock.close()
+                sc.close()
     
     def GetChatWin(self, friend_id):
         for win in self.chat_wins:
