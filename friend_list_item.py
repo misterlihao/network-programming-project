@@ -141,6 +141,11 @@ class FriendListItemView:
             self.OnMailListWinClosed()
             return
         
+        for index in range(len(self.friend_window.friend_list)):
+                    friend = self.friend_window.friend_list[index]
+                    if friend[3] == self.model.friend_id:
+                        self.friend_window.SetFriendNewMail(index, False, [])
+                        break
         win32gui.SetWindowText(self.mail_btn, 'close')
         self.mail_list_win = MailListWindow('<Mail>'+self.model.friend_name, self.OnMailListWinClosed)
         friend_index = None
