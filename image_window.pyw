@@ -566,7 +566,7 @@ class image_window:
         SendText to remote chatter
         '''
         '''get the speak_window handle'''
-        speak_window_hwnd = win32gui.GetForegroundWindow()
+        self.speak_window_hwnd = win32gui.GetForegroundWindow()
         if self.conn_socket == None:
             if self.online == True:
                 print('try connect to', self.ip)
@@ -584,6 +584,9 @@ class image_window:
         
         mt.SendMessageAndAnime(self.conn_socket, self.input_text.get(), self.tmp_anime)
         msg = self.input_text.get()
+        msg = msg.replace('\n', '')
+        msg = msg.replace('\r', '')
+
         self.this_messages.append('you: '+msg)
         '''1.send new message so readCheck set to False'''
         self.sended_message_read = False #no need but on logical
@@ -592,7 +595,7 @@ class image_window:
         
         self.showAction(self.getActionPath('send.txt'))
         self.input_text.delete(0, tk.END)
-        win32gui.SetFocus(speak_window_hwnd)
+        win32gui.SetFocus(self.speak_window_hwnd)
         
     def OnPaint(self, hwnd, message, wparam, lparam):
         dc,ps = win32gui.BeginPaint(hwnd)
