@@ -582,10 +582,11 @@ class image_window:
             assert mp.recvPacket(self.conn_socket) == b'ok'
             self.DoAfterConnectEstablished() 
         
-        mt.SendMessageAndAnime(self.conn_socket, self.input_text.get(), self.tmp_anime)
         msg = self.input_text.get()
         msg = msg.replace('\n', '')
         msg = msg.replace('\r', '')
+
+        mt.SendMessageAndAnime(self.conn_socket, self.input_text.get(), self.tmp_anime)
 
         self.this_messages.append('you: '+msg)
         '''1.send new message so readCheck set to False'''
