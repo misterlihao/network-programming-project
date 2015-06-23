@@ -586,7 +586,7 @@ class image_window:
         msg = msg.replace('\n', '')
         msg = msg.replace('\r', '')
 
-        mt.SendMessageAndAnime(self.conn_socket, self.input_text.get(), self.tmp_anime)
+        mt.SendMessageAndAnime(self.conn_socket, msg, self.tmp_anime)
 
         self.this_messages.append('you: '+msg)
         '''1.send new message so readCheck set to False'''
