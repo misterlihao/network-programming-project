@@ -440,8 +440,9 @@ class image_window:
         l.pack(fill='both',expand=True)
         f.pack(fill='both',expand=True)
         r.wm_attributes('-toolwindow',True, '-topmost', True)
-        r.geometry('%dx%d+%d+%d'%self.GetNewChatMsgWinSizePos())
+        #r.geometry('%dx%d+%d+%d'%self.GetNewChatMsgWinSizePos())
         self.chat_msg_win.append(r)
+        self.SetAttachedWinPos()
     
     def showSentChatMsgWin(self, msg):
         r = tk.Toplevel()
@@ -468,11 +469,11 @@ class image_window:
         h = 32
         y_dis = 7
         x = win32gui.GetWindowRect(self.hwnd)[0]
-        y = win32gui.GetWindowRect(self.hwnd)[1] - (y_dis+h)*(index+1)
+        y = win32gui.GetWindowRect(self.hwnd)[1] - (y_dis+h)*(len(self.chat_msg_win) - index)
         return w,h,x,y
     
     def GetSentMsgWinSizePos(self):
-        w = 200
+        w = 250
         h = 32
         y_dis = 7
         x_dis = 10
